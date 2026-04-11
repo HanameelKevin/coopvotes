@@ -1,0 +1,30 @@
+{
+    "name": "coopvotes",
+    "version": "1.0.0",
+    "description": "A secure, scalable MERN stack web application for university voting system",
+    "main": "server/server.js",
+    "scripts": {
+        "dev": "concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+        "dev:server": "npm --prefix server run dev",
+        "dev:client": "npm --prefix client run dev",
+        "build": "npm --prefix client run build",
+        "build:server": "npm --prefix server run build",
+        "start": "npm --prefix server start",
+        "seed": "npm --prefix server run seed",
+        "install:all": "npm install && npm --prefix server install && npm --prefix client install"
+    },
+    "keywords": [
+        "voting",
+        "election",
+        "university",
+        "MERN",
+        "react",
+        "express",
+        "mongodb"
+    ],
+    "author": "CoopVotes Team",
+    "license": "MIT",
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

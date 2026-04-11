@@ -1,0 +1,36 @@
+{
+  "name": "coopvotes-client",
+  "version": "1.0.0",
+  "description": "CoopVotes Frontend - The Co-operative University of Kenya Voting System",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "voting",
+    "election",
+    "university",
+    "react"
+  ],
+  "author": "CoopVotes",
+  "license": "MIT",
+  "dependencies": {
+    "@tanstack/react-query": "^5.97.0",
+    "axios": "^1.15.0",
+    "chart.js": "^4.5.1",
+    "confetti": "^3.0.4",
+    "react": "^19.2.5",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "vite": "^7.1.12"
+  }
+}
