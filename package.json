@@ -25,6 +25,11 @@
     "author": "CoopVotes Team",
     "license": "MIT",
     "devDependencies": {
-        "concurrently": "^8.2.2"
+        "concurrently": "^8.2.2",
+        "vite": "^8.0.8"
+    },
+    "dependencies": {
+        "@vercel/analytics": "^2.0.1",
+        "express": "^5.2.1"
     }
 }
