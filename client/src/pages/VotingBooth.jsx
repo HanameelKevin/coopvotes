@@ -5,7 +5,9 @@ import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import CandidateCard from '../components/CandidateCard';
 import ElectionStatus from '../components/ElectionStatus';
+import CountdownTimer from '../components/CountdownTimer';
 import Toast from '../components/Toast';
+import confetti from 'canvas-confetti';
 
 const POSITIONS = ['President', 'Congress Person', 'Male Delegate', 'Female Delegate'];
 const DEPARTMENTS = ['BIT', 'BBM', 'CS', 'COMM', 'LAW', 'EDU'];
@@ -46,21 +48,31 @@ const VotingBooth = () => {
     }
   });
 
-  // Cast vote mutation
-  const voteMutation = useMutation({
-    mutationFn: async ({ candidateId, position, department }) => {
-      const response = await api.post('/vote', {
-        candidateId,
-        position,
-        department: position === 'President' ? null : department
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['voteStatus']);
-      queryClient.invalidateQueries(['candidates']);
-    }
-  });
+   // Cast vote mutation
+   const voteMutation = useMutation({
+     mutationFn: async ({ candidateId, position, department }) => {
+       const response = await api.post('/vote', {
+         candidateId,
+         position,
+         department: position === 'President' ? null : department
+       });
+       return response.data;
+     },
+     onSuccess: (_, variables) => {
+       queryClient.invalidateQueries(['voteStatus']);
+       queryClient.invalidateQueries(['candidates']);
+       
+       // Trigger confetti on final vote
+       if (currentPositionIndex === POSITIONS.length - 1) {
+         confetti({
+           particleCount: 200,
+           spread: 70,
+           origin: { y: 0.6 },
+           colors: ['#22c55e', '#3b82f6', '#eab308', '#a855f7']
+         });
+       }
+     }
+   });
 
   // Check if election is active
   useEffect(() => {
@@ -156,9 +168,12 @@ const VotingBooth = () => {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
           <h1 className="text-3xl font-bold text-gray-900">Voting Booth</h1>
-          <ElectionStatus compact />
+          <div className="flex items-center gap-4">
+             <CountdownTimer />
+             <ElectionStatus compact />
+          </div>
         </div>
 
         {/* Progress Indicator */}
@@ -205,12 +220,12 @@ const VotingBooth = () => {
       </div>
 
       {/* Current Position */}
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{currentPosition}</h2>
+      <div className="glass-panel p-8 mb-8">
+        <div className="mb-6 border-b border-gray-100 pb-4">
+          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">{currentPosition}</h2>
           {currentPosition !== 'President' && (
-            <p className="text-gray-600">
-              Department: {user?.department}
+            <p className="text-gray-500 font-medium mt-1">
+              Departmental Representation: <span className="text-coop-green">{user?.department}</span>
             </p>
           )}
         </div>
@@ -262,7 +277,7 @@ const VotingBooth = () => {
           <button
             onClick={handleSubmitVote}
             disabled={!selectedCandidates[currentPosition] || submitting}
-            className="btn-primary flex items-center"
+            className="premium-btn flex items-center"
           >
             {submitting ? (
               <>
@@ -270,12 +285,12 @@ const VotingBooth = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Casting Vote...
+                Securely Casting...
               </>
             ) : currentPositionIndex === POSITIONS.length - 1 ? (
-              'Finish & Submit'
+              'Cast Final Vote 🎉'
             ) : (
-              'Vote & Continue'
+              'Cast Vote & Next'
             )}
           </button>
         )}

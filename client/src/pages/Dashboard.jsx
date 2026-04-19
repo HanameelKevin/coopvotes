@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import { getDepartmentName } from '../utils/helpers';
 import ElectionStatus from '../components/ElectionStatus';
+import CountdownTimer from '../components/CountdownTimer';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -65,6 +66,18 @@ const Dashboard = () => {
 
   const cards = roleCards[user?.role] || roleCards.student;
 
+  const getVoteProgress = () => {
+    if (user?.role !== 'student') return null;
+    const required = ['President', 'Congress Person', 'Male Delegate', 'Female Delegate'];
+    const voted = user?.votedPositions || [];
+    const completed = required.filter(pos => voted.includes(pos));
+    const percentage = Math.round((completed.length / required.length) * 100);
+
+    return { required, voted, completed, percentage };
+  };
+
+  const progress = getVoteProgress();
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Welcome Section */}
@@ -80,28 +93,72 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Election Status Banner */}
-      <div className="mb-8">
+      {/* Election Status & Countdown Banner */}
+      <div className="mb-8 grid md:grid-cols-2 gap-4">
         <ElectionStatus />
+        <CountdownTimer />
       </div>
 
+      {/* Student Voting Progress */}
+      {user?.role === 'student' && progress && (
+        <div className="glass-panel p-6 mb-8 border-l-4 border-coop-green">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-900">Voting Progress</h2>
+            <span className={`font-bold text-lg ${progress.percentage === 100 ? 'text-coop-green' : 'text-blue-600'}`}>
+              {progress.percentage}%
+            </span>
+          </div>
+
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+            <div
+              className={`h-3 rounded-full transition-all duration-1000 ${progress.percentage === 100 ? 'bg-coop-green' : 'bg-blue-500'}`}
+              style={{ width: `${progress.percentage}%` }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {progress.required.map(pos => {
+              const isDone = progress.voted.includes(pos);
+              return (
+                <div key={pos} className={`p-3 rounded-xl border ${isDone ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-700">{pos}</span>
+                    {isDone ? (
+                      <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    ) : (
+                      <span className="text-xs font-medium text-gray-400 bg-gray-200 px-2 py-1 rounded-full">Pending</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {progress.percentage === 100 && (
+            <div className="mt-6 p-4 bg-green-100 text-green-800 rounded-xl font-semibold flex items-center justify-center animate-slide-up">
+              🎉 You have completed voting! Thank you for participating.
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl p-4 shadow-md">
-          <p className="text-sm text-gray-500">Department</p>
-          <p className="text-lg font-semibold text-gray-900">{user?.department}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+        <div className="glass-card p-5 border-t-4 border-t-coop-gold hover:border-t-coop-green">
+          <p className="text-sm text-gray-500 font-medium">Department</p>
+          <p className="text-xl font-bold text-gray-900 mt-1">{user?.department}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-md">
-          <p className="text-sm text-gray-500">Year of Study</p>
-          <p className="text-lg font-semibold text-gray-900">{user?.yearOfStudy}</p>
+        <div className="glass-card p-5 border-t-4 border-t-blue-400 hover:border-t-blue-600">
+          <p className="text-sm text-gray-500 font-medium">Year of Study</p>
+          <p className="text-xl font-bold text-gray-900 mt-1">{user?.yearOfStudy}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-md">
-          <p className="text-sm text-gray-500">Role</p>
-          <p className="text-lg font-semibold text-gray-900 capitalize">{user?.role}</p>
+        <div className="glass-card p-5 border-t-4 border-t-emerald-400 hover:border-t-emerald-600">
+          <p className="text-sm text-gray-500 font-medium">Role</p>
+          <p className="text-xl font-bold text-gray-900 mt-1 capitalize">{user?.role}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-md">
-          <p className="text-sm text-gray-500">Election</p>
-          <p className={`text-lg font-semibold ${isElectionActive ? 'text-green-600' : 'text-gray-400'}`}>
+        <div className="glass-card p-5 border-t-4 border-t-purple-400 hover:border-t-purple-600">
+          <p className="text-sm text-gray-500 font-medium">Election</p>
+          <p className={`text-xl font-bold mt-1 ${isElectionActive ? 'text-green-600' : 'text-gray-400'}`}>
             {isElectionActive ? 'Active' : 'Closed'}
           </p>
         </div>
@@ -115,9 +172,9 @@ const Dashboard = () => {
             key={index}
             to={card.disabled ? '#' : card.link}
             className={`
-              card block group
-              ${card.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl hover:-translate-y-1'}
-              transition-all duration-200
+              glass-card block group
+              ${card.disabled ? 'opacity-50 cursor-not-allowed' : ''}
+              transition-all duration-300
             `}
           >
             <div className="flex items-start space-x-4">

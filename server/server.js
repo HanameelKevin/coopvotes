@@ -2,7 +2,6 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const path = require('path');
@@ -18,54 +17,62 @@ const authRoutes = require('./routes/auth');
 const candidateRoutes = require('./routes/candidates');
 const voteRoutes = require('./routes/votes');
 const electionRoutes = require('./routes/election');
+const adminRoutes = require('./routes/admin');
 
 // Import error handler
 const { errorHandler } = require('./middleware/validate');
+const { generalLimiter } = require('./middleware/rateLimiter');
 
 // Initialize express app
 const app = express();
+app.set('trust proxy', 1);
 
 // Connect to database
 connectDB();
 
-// Security middleware
-app.use(helmet());
+// Security middleware - Enhanced helmet configuration
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
 
-// CORS configuration
+// CORS configuration - Restrictive
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining']
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
+// General rate limiting
+app.use('/api', generalLimiter);
 
-// Apply rate limiting to API routes
-app.use('/api', limiter);
+// Body parser middleware with size limits
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Stricter rate limit for auth endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10, // limit auth attempts
-  message: 'Too many login attempts, please try again later.'
-});
+// Cookie parser middleware with security options
+app.use(cookieParser(process.env.COOKIE_SECRET));
 
-// Body parser middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Cookie parser middleware
-app.use(cookieParser());
-
-// Request logging middleware
+// Request logging middleware with IP tracking
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.headers['x-real-ip'] ||
+    req.connection.remoteAddress ||
+    'unknown';
+  console.log(`${new Date().toISOString()} | ${clientIp} | ${req.method} ${req.path}`);
   next();
 });
 
@@ -74,13 +81,45 @@ app.use('/api/auth', authRoutes);
 app.use('/api/candidates', candidateRoutes);
 app.use('/api/vote', voteRoutes);
 app.use('/api/election', electionRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'CoopVotes API is running',
-    timestamp: new Date().toISOString()
+    version: '2.0.0-secure',
+    timestamp: new Date().toISOString(),
+    security: {
+      encryption: 'AES-256-GCM',
+      hashing: 'SHA-256',
+      rateLimiting: true,
+      auditLogging: true
+    }
+  });
+});
+
+// Security check endpoint
+app.get('/api/security/status', (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: {
+      encryptionEnabled: !!process.env.VOTE_ENCRYPTION_KEY,
+      rateLimitingEnabled: true,
+      auditLoggingEnabled: true,
+      strictEmailValidation: true,
+      strictRegNumberValidation: true,
+      features: [
+        'AES-256-GCM Vote Encryption',
+        'SHA-256 Hash Receipts',
+        'Chained Vote Hashes',
+        'Audit Logging',
+        'Anomaly Detection',
+        'Rate Limiting',
+        'RBAC',
+        'Data Sanitization'
+      ]
+    }
   });
 });
 
@@ -107,6 +146,16 @@ const server = app.listen(PORT, () => {
 ║                                                           ║
 ║   Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}            ║
 ║   API: http://localhost:${PORT}                            ║
+║                                                           ║
+║   SECURITY FEATURES:                                      ║
+║   ✓ AES-256-GCM Vote Encryption                           ║
+║   ✓ SHA-256 Hash Receipts                               ║
+║   ✓ Chained Vote Hashes                                   ║
+║   ✓ Audit Logging                                         ║
+║   ✓ Anomaly Detection                                     ║
+║   ✓ Rate Limiting                                         ║
+║   ✓ RBAC                                                  ║
+║   ✓ Data Sanitization                                     ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
   `);

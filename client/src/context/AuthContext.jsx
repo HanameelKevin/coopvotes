@@ -48,15 +48,25 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, regNumber) => {
     const response = await api.post('/auth/login', { email, regNumber });
+    // If it requires OTP, just return the data to the component
+    if (response.data.data && response.data.data.requiresOtp) {
+      return response.data.data;
+    }
+    
+    // Fallback if no OTP (shouldn't happen with new flow, but safe)
     const { token, user: userData } = response.data;
-
     localStorage.setItem('token', token);
     setUser(userData);
+    fetchElectionStatus().catch(() => {});
+    return userData;
+  };
 
-    fetchElectionStatus().catch((error) => {
-      console.error('Election status fetch after login failed:', error);
-    });
-
+  const verifyOtp = async (userId, otp) => {
+    const response = await api.post('/auth/verify-otp', { userId, otp });
+    const { token, user: userData } = response.data;
+    localStorage.setItem('token', token);
+    setUser(userData);
+    fetchElectionStatus().catch(() => {});
     return userData;
   };
 
@@ -82,6 +92,7 @@ export const AuthProvider = ({ children }) => {
     electionStatus,
     isElectionActive: electionStatus?.isActive || false,
     login,
+    verifyOtp,
     logout,
     refreshElectionStatus
   };

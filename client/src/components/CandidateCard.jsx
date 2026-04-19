@@ -12,9 +12,9 @@ const CandidateCard = ({ candidate, onSelect, isSelected, showVotes = false, dis
   return (
     <div
       className={`
-        card relative overflow-hidden cursor-pointer transition-all duration-200
-        ${isSelected ? 'ring-2 ring-coop-green bg-green-50' : ''}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:-translate-y-1'}
+        glass-card relative overflow-hidden cursor-pointer
+        ${isSelected ? 'ring-2 ring-coop-green bg-green-50/90 shadow-[0_0_20px_rgba(0,107,63,0.3)]' : ''}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       `}
       onClick={() => !disabled && onSelect && onSelect(candidate)}
     >
@@ -75,4 +75,4 @@ const CandidateCard = ({ candidate, onSelect, isSelected, showVotes = false, dis
   );
 };
 
-export default CandidateCard;
+export default React.memo(CandidateCard);

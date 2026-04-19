@@ -19,18 +19,18 @@
   "dependencies": {
     "@tanstack/react-query": "^5.97.0",
     "axios": "^1.15.0",
+    "canvas-confetti": "^1.9.4",
     "chart.js": "^4.5.1",
-    "confetti": "^3.0.4",
     "react": "^19.2.5",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.22",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
-    "vite": "^7.1.12"
+    "vite": "^5.4.11"
   }
 }

@@ -25,8 +25,9 @@ const getCandidates = asyncHandler(async (req, res) => {
     query.isApproved = approved === 'true';
   }
 
+  // Only populate non-sensitive fields for public access
   const candidates = await Candidate.find(query)
-    .populate('userId', 'email regNumber department yearOfStudy')
+    .populate('userId', 'email department')
     .sort({ position: 1, votes: -1 });
 
   res.status(200).json({
@@ -43,7 +44,7 @@ const getCandidates = asyncHandler(async (req, res) => {
  */
 const getCandidate = asyncHandler(async (req, res) => {
   const candidate = await Candidate.findById(req.params.id)
-    .populate('userId', 'email regNumber department');
+    .populate('userId', 'email department');
 
   if (!candidate) {
     return res.status(404).json({
@@ -220,7 +221,7 @@ const getCandidatesByDepartment = asyncHandler(async (req, res) => {
   }
 
   const candidates = await Candidate.find(query)
-    .populate('userId', 'email regNumber')
+    .populate('userId', 'email')
     .sort({ votes: -1 });
 
   res.status(200).json({

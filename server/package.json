@@ -1,20 +1,27 @@
 {
   "name": "coopvotes-server",
-  "version": "1.0.0",
-  "description": "CoopVotes API - The Co-operative University of Kenya Voting System",
+  "version": "2.0.0",
+  "description": "CoopVotes Secure Voting System - The Co-operative University of Kenya",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "seed": "node seeders/seed.js"
+    "seed": "node seeders/seed.js",
+    "test": "node tests/securityTests.js",
+    "migrate": "node migrations/migrateSecurity.js",
+    "security:check": "node tests/securityTests.js",
+    "security:migrate": "node migrations/migrateSecurity.js"
   },
   "keywords": [
     "voting",
     "election",
     "university",
-    "mern"
+    "secure",
+    "encrypted",
+    "audit",
+    "blockchain"
   ],
-  "author": "CoopVotes",
+  "author": "CoopVotes Security Team",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -26,9 +33,16 @@
     "express-validator": "^7.3.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.4.1"
+    "mongoose": "^9.4.1",
+    "node-cache": "^5.1.2",
+    "nodemailer": "^8.0.5",
+    "pdfkit": "^0.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }

@@ -1,57 +1,60 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { VoteBarChart } from '../components/VoteChart';
 import { getDepartmentName } from '../utils/helpers';
 import ElectionStatus from '../components/ElectionStatus';
+import confetti from 'canvas-confetti';
 
 const POSITIONS = ['President', 'Congress Person', 'Male Delegate', 'Female Delegate'];
 const DEPARTMENTS = ['BIT', 'BBM', 'CS', 'COMM', 'LAW', 'EDU'];
 
 const Results = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedPosition, setSelectedPosition] = useState('President');
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [viewMode, setViewMode] = useState('cards');
 
   const confettiShownRef = useRef(false);
+  const [showAccessDenied, setShowAccessDenied] = useState(false);
 
   // Fetch results
-  const { data: resultsData, isLoading, refetch } = useQuery({
+  const { data: resultsData, isLoading, refetch, error } = useQuery({
     queryKey: ['results'],
     queryFn: async () => {
       const response = await api.get('/vote/results');
       return response.data.data;
     },
     refetchInterval: 30000,
-    refetchIntervalInBackground: false
+    refetchIntervalInBackground: false,
+    onError: (err) => {
+      // If user gets 403, they haven't voted yet
+      if (err.response?.status === 403) {
+        setShowAccessDenied(true);
+      }
+    }
   });
 
-  // Launch confetti once when results first arrive
-  useEffect(() => {
-    const shouldCelebrate = resultsData?.results && !confettiShownRef.current;
-    if (!shouldCelebrate) return;
+   // Launch confetti once when results first arrive (only if user has access)
+   useEffect(() => {
+     const shouldCelebrate = resultsData?.results && !confettiShownRef.current && !showAccessDenied;
+     if (!shouldCelebrate) return;
 
-    confettiShownRef.current = true;
+     confettiShownRef.current = true;
 
-    const launchConfetti = async () => {
-      const { default: confetti } = await import('confetti');
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 }
-      });
-    };
+     const timeoutId = window.setTimeout(() => {
+       confetti({
+         particleCount: 150,
+         spread: 70,
+         origin: { y: 0.6 }
+       });
+     }, 300);
 
-    const timeoutId = window.setTimeout(() => {
-      launchConfetti().catch(() => {
-        // Ignore confetti failures so results still render normally
-      });
-    }, 300);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [resultsData]);
+     return () => window.clearTimeout(timeoutId);
+   }, [resultsData, showAccessDenied]);
 
   const activeDepartment = selectedDepartment || user?.department;
 
@@ -88,16 +91,40 @@ const Results = () => {
     ? 'University-wide Winner'
     : `${getDepartmentName(activeDepartment)} Winner`;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="spinner w-12 h-12 border-4" />
-          <p className="mt-4 text-gray-600">Loading results...</p>
-        </div>
-      </div>
-    );
-  }
+   if (isLoading) {
+     return (
+       <div className="min-h-screen flex items-center justify-center">
+         <div className="text-center">
+           <div className="spinner w-12 h-12 border-4" />
+           <p className="mt-4 text-gray-600">Loading results...</p>
+         </div>
+       </div>
+     );
+   }
+
+   if (showAccessDenied) {
+     return (
+       <div className="min-h-screen flex items-center justify-center">
+         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4 text-center">
+           <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+             <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+             </svg>
+           </div>
+           <h2 className="text-2xl font-bold text-gray-900 mb-2">Vote Required</h2>
+           <p className="text-gray-600 mb-6">
+             You must cast your vote before viewing election results.
+           </p>
+           <button
+             onClick={() => navigate('/voting')}
+             className="btn-primary w-full"
+           >
+             Go to Voting Booth
+           </button>
+         </div>
+       </div>
+     );
+   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -121,29 +148,29 @@ const Results = () => {
 
         {/* Election Summary */}
         {resultsData?.election && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-4 shadow-md">
-              <p className="text-sm text-gray-500">Total Votes</p>
-              <p className="text-2xl font-bold text-coop-green">{resultsData.election.totalVotes}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="glass-card p-5 border-t-4 border-coop-green hover:border-green-600">
+              <p className="text-sm text-gray-500 font-medium">Total Votes</p>
+              <p className="text-2xl font-bold text-coop-green mt-1">{resultsData.election.totalVotes}</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-md">
-              <p className="text-sm text-gray-500">Eligible Voters</p>
-              <p className="text-2xl font-bold text-blue-600">{resultsData.election.totalVoters}</p>
+            <div className="glass-card p-5 border-t-4 border-blue-500 hover:border-blue-600">
+              <p className="text-sm text-gray-500 font-medium">Eligible Voters</p>
+              <p className="text-2xl font-bold text-blue-600 mt-1">{resultsData.election.totalVoters}</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-md">
-              <p className="text-sm text-gray-500">Turnout</p>
-              <p className="text-2xl font-bold text-purple-600">{Math.round(resultsData.election.turnout)}%</p>
+            <div className="glass-card p-5 border-t-4 border-purple-500 hover:border-purple-600">
+              <p className="text-sm text-gray-500 font-medium">Turnout</p>
+              <p className="text-2xl font-bold text-purple-600 mt-1">{Math.round(resultsData.election.turnout)}%</p>
             </div>
-            <div className="bg-white rounded-xl p-4 shadow-md">
-              <p className="text-sm text-gray-500">Election Year</p>
-              <p className="text-2xl font-bold text-gray-900">{resultsData.election.year}</p>
+            <div className="glass-card p-5 border-t-4 border-gray-700 hover:border-gray-900">
+              <p className="text-sm text-gray-500 font-medium">Election Year</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{resultsData.election.year}</p>
             </div>
           </div>
         )}
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-md p-4 mb-8">
+      <div className="glass-panel p-5 mb-8 flex items-center border border-gray-100/50">
         <div className="flex flex-wrap items-center gap-4">
           {/* Position Filter */}
           <div>
@@ -216,12 +243,12 @@ const Results = () => {
                 <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-700">
                   Official Winner Announcement
                 </p>
-                <h2 className="mt-2 text-2xl md:text-3xl font-extrabold text-gray-900">
-                  🏆 {winner.name.split('@')[0]} wins {selectedPosition}
-                </h2>
-                <p className="mt-2 text-sm md:text-base text-gray-600">
-                  {winnerLabel} • {winner.regNumber}
-                </p>
+                 <h2 className="mt-2 text-2xl md:text-3xl font-extrabold text-gray-900">
+                   🏆 {winner.name.split('@')[0]} wins {selectedPosition}
+                 </h2>
+                 <p className="mt-2 text-sm md:text-base text-gray-600">
+                   {winnerLabel}
+                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 md:min-w-[260px]">
                 <div className="rounded-xl bg-amber-50 px-4 py-3 text-center">
@@ -271,7 +298,7 @@ const Results = () => {
                     </div>
                   </div>
                 )}
-                <div className="card h-full">
+                <div className="glass-card h-full">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-3xl font-bold text-gray-200">#{index + 1}</span>
                     {isWinner && (
@@ -280,9 +307,8 @@ const Results = () => {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">
                     {candidate.name.split('@')[0]}
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-4">{candidate.regNumber}</p>
-                  <div className="bg-gray-50 rounded-xl p-4">
+                   </h3>
+                   <div className="bg-gray-50 rounded-xl p-4">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-gray-600">Total Votes</span>
                       <span className="text-2xl font-bold text-coop-green">{candidate.totalVotes}</span>
@@ -310,7 +336,7 @@ const Results = () => {
           })}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="glass-panel p-6">
           <div className="h-80">
             <VoteBarChart
               data={chartData}
@@ -323,7 +349,7 @@ const Results = () => {
       {/* All Positions Summary */}
       <div className="mt-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">All Positions Summary</h2>
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="glass-panel overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">

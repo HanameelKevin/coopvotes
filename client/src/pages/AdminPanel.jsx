@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import Toast from '../components/Toast';
+import AdminCharts from '../components/AdminCharts';
 import { formatDate, getDepartmentName } from '../utils/helpers';
 
 const AdminPanel = () => {
@@ -43,6 +44,30 @@ const AdminPanel = () => {
     queryKey: ['results'],
     queryFn: async () => {
       const response = await api.get('/vote/results');
+      return response.data.data;
+    }
+  });
+
+  const { data: statsData } = useQuery({
+    queryKey: ['adminStats'],
+    queryFn: async () => {
+      const response = await api.get('/admin/stats');
+      return response.data.data;
+    }
+  });
+
+  const { data: securityAlertsData } = useQuery({
+    queryKey: ['securityAlerts'],
+    queryFn: async () => {
+      const response = await api.get('/admin/security/alerts?hours=24');
+      return response.data.data;
+    }
+  });
+
+  const { data: auditLogsData } = useQuery({
+    queryKey: ['auditLogs'],
+    queryFn: async () => {
+      const response = await api.get('/admin/audit-logs?limit=10');
       return response.data.data;
     }
   });
@@ -154,22 +179,37 @@ const AdminPanel = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
+    { id: 'monitoring', label: 'Monitoring' },
     { id: 'candidates', label: 'Candidates' },
     { id: 'offline', label: 'Offline Votes' },
     { id: 'export', label: 'Export' }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-        <p className="text-gray-600 mt-1">Manage elections, candidates, and votes</p>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="glass-card p-5 border-l-4 border-blue-500">
+            <h3 className="text-sm font-medium text-gray-500">Total Voters</h3>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{statsData?.users?.total || 0}</p>
+          </div>
+          <div className="glass-card p-5 border-l-4 border-green-500">
+            <h3 className="text-sm font-medium text-gray-500">Total Votes Cast</h3>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{resultsData?.election?.totalVotes || 0}</p>
+          </div>
+          <div className="glass-card p-5 border-l-4 border-purple-500">
+            <h3 className="text-sm font-medium text-gray-500">Current Turnout</h3>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{Math.round(resultsData?.election?.turnout) || 0}%</p>
+          </div>
+          <div className="glass-card p-5 border-l-4 border-yellow-500">
+            <h3 className="text-sm font-medium text-gray-500">Status</h3>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{electionData?.isActive ? 'Active' : 'Paused'}</p>
+          </div>
+        </div>
 
       {/* Election Control */}
-      <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Election Control</h2>
+      <div className="glass-panel p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-4">Create New Election</h2>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-gray-600">
@@ -251,8 +291,13 @@ const AdminPanel = () => {
                 </div>
               </div>
 
+              {/* Render Admin Charts (Live Analytics) */}
+              <div className="mt-8">
+                <AdminCharts statsData={statsData} resultsData={resultsData} />
+              </div>
+
               {/* Election Info */}
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 rounded-xl p-4 mt-8">
                 <h3 className="font-semibold text-gray-900 mb-2">Election Information</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                   <div>
@@ -274,11 +319,108 @@ const AdminPanel = () => {
                     </span>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+           </div>
+         </div>
+       )}
 
-          {/* Candidates Tab */}
+       {/* Monitoring Tab */}
+       {activeTab === 'monitoring' && (
+         <div className="space-y-6">
+           {/* System Stats Summary */}
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+             <div className="bg-green-50 rounded-xl p-4">
+               <p className="text-sm text-gray-600">Total Users</p>
+               <p className="text-2xl font-bold text-green-600">{statsData?.users?.total || 0}</p>
+             </div>
+             <div className="bg-blue-50 rounded-xl p-4">
+               <p className="text-sm text-gray-600">Voted</p>
+               <p className="text-2xl font-bold text-blue-600">{statsData?.users?.voted || 0}</p>
+             </div>
+             <div className="bg-purple-50 rounded-xl p-4">
+               <p className="text-sm text-gray-600">Turnout</p>
+               <p className="text-2xl font-bold text-purple-600">{statsData?.users?.turnout ? Math.round(statsData.users.turnout) : 0}%</p>
+             </div>
+             <div className="bg-red-50 rounded-xl p-4">
+               <p className="text-sm text-gray-600">Failed Logins (24h)</p>
+               <p className="text-2xl font-bold text-red-600">{statsData?.security?.failedLogins || 0}</p>
+             </div>
+           </div>
+
+           {/* Security Alerts */}
+           <div className="bg-white rounded-xl shadow-md overflow-hidden">
+             <div className="px-6 py-4 border-b bg-red-50">
+               <h3 className="font-semibold text-red-900">Security Alerts (Last 24 Hours)</h3>
+             </div>
+             <div className="p-6">
+               {securityAlertsData?.criticalEvents?.length > 0 ? (
+                 <div className="space-y-3">
+                   {securityAlertsData.criticalEvents.slice(0, 5).map((event, idx) => (
+                     <div key={idx} className="flex items-start p-3 bg-red-50 border border-red-200 rounded-lg">
+                       <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-red-500"></div>
+                       <div className="ml-3">
+                         <p className="text-sm font-medium text-red-900">{event.action}</p>
+                         <p className="text-xs text-red-700 mt-1">
+                           {event.userId?.email || 'Unknown user'} • {formatDate(event.timestamp)}
+                         </p>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               ) : (
+                 <p className="text-gray-500 text-center py-4">No critical security alerts in the last 24 hours.</p>
+               )}
+               <div className="mt-4 flex justify-between items-center text-sm">
+                 <span className="text-gray-600">
+                   Total alerts: <strong>{securityAlertsData?.totalAlerts || 0}</strong>
+                 </span>
+                 <span className="text-gray-500">
+                   Time window: {securityAlertsData?.timeWindow || '24 hours'}
+                 </span>
+               </div>
+             </div>
+           </div>
+
+           {/* Recent Audit Logs */}
+           <div className="bg-white rounded-xl shadow-md overflow-hidden">
+             <div className="px-6 py-4 border-b">
+               <h3 className="font-semibold text-gray-900">Recent Audit Logs</h3>
+             </div>
+             <div className="overflow-x-auto">
+               <table className="w-full text-sm">
+                 <thead className="bg-gray-50">
+                   <tr>
+                     <th className="px-4 py-3 text-left font-medium text-gray-700">Action</th>
+                     <th className="px-4 py-3 text-left font-medium text-gray-700">User</th>
+                     <th className="px-4 py-3 text-left font-medium text-gray-700">Severity</th>
+                     <th className="px-4 py-3 text-left font-medium text-gray-700">Time</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {auditLogsData?.logs?.map((log) => (
+                     <tr key={log._id} className="border-t">
+                       <td className="px-4 py-3 font-medium">{log.action}</td>
+                       <td className="px-4 py-3">{log.userId?.email || 'System'}</td>
+                       <td className="px-4 py-3">
+                         <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                           log.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                           log.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                           log.severity === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                           'bg-green-100 text-green-700'
+                         }`}>
+                           {log.severity}
+                         </span>
+                       </td>
+                       <td className="px-4 py-3 text-gray-500">{formatDate(log.timestamp)}</td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Candidates Tab */}
           {activeTab === 'candidates' && (
             <div>
               <div className="flex justify-between items-center mb-4">
