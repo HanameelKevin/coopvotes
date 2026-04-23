@@ -12,8 +12,8 @@ router.post('/login', authLimiter, [
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Invalid email format')
     .custom((value) => {
-      // Allow any email in development, or if DEV_OTP is enabled (for testing)
-      const allowAnyEmail = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true';
+      // Allow any email in development, or if DEV_OTP is enabled (for testing), or if BYPASS_RESTRICTIONS is true
+      const allowAnyEmail = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true' || process.env.BYPASS_RESTRICTIONS === 'true';
       if (!allowAnyEmail && !value.toLowerCase().endsWith('@student.cuk.ac.ke')) {
         throw new Error('Email must be a @student.cuk.ac.ke address');
       }
@@ -25,9 +25,8 @@ router.post('/login', authLimiter, [
     .custom((value) => {
       const { STRICT_REG_NUMBER_REGEX, FLEXIBLE_REG_NUMBER_REGEX } = require('../utils/regParser');
       const normalized = value.trim().toUpperCase().replace(/-/g, '/');
-      // In development or DEV_OTP mode, allow flexible formats (e.g., B08/1234/2023)
-      // In production, enforce strict format (e.g., C026/405411/2024)
-      const allowFlexible = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true';
+      // In development or DEV_OTP mode, or if BYPASS_RESTRICTIONS is true, allow flexible formats
+      const allowFlexible = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true' || process.env.BYPASS_RESTRICTIONS === 'true';
       const regex = allowFlexible ? FLEXIBLE_REG_NUMBER_REGEX : STRICT_REG_NUMBER_REGEX;
       if (!regex.test(normalized)) {
         const hint = allowFlexible

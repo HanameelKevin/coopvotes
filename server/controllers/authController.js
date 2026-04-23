@@ -21,8 +21,10 @@ const login = asyncHandler(async (req, res) => {
   const normalizedEmail = email?.toLowerCase().trim();
 
   // STRICT: Validate registration number format
+  const isBypass = process.env.BYPASS_RESTRICTIONS === 'true';
   const regValidation = validateRegNumberFormat(regNumber);
-  if (!regValidation.isValid) {
+  
+  if (!regValidation.isValid && !isBypass) {
     console.warn(`[AUTH] Invalid reg format: ${regNumber} for ${normalizedEmail}`);
     await logAuth(req, 'LOGIN_FAILED', {
       reason: 'invalid_reg_number',
@@ -36,21 +38,38 @@ const login = asyncHandler(async (req, res) => {
     });
   }
 
+  // If bypass is on and validation failed, create a dummy validation object
+  const effectiveRegValidation = (regValidation.isValid) ? regValidation : {
+    isValid: true,
+    normalized: regNumber.trim().toUpperCase().replace(/-/g, '/')
+  };
+
   // Parse registration number
   let parsedRegNumber;
   try {
     parsedRegNumber = parseRegNumber(regNumber);
   } catch (error) {
-    await logAuth(req, 'LOGIN_FAILED', {
-      reason: 'parse_error',
-      email: normalizedEmail,
-      error: error.message
-    }, 'medium');
+    if (!isBypass) {
+      await logAuth(req, 'LOGIN_FAILED', {
+        reason: 'parse_error',
+        email: normalizedEmail,
+        error: error.message
+      }, 'medium');
 
-    return res.status(400).json({
-      success: false,
-      message: error.message
-    });
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+    
+    // Fallback for bypass mode
+    parsedRegNumber = {
+      department: 'CS',
+      departmentName: 'Computer Science',
+      admissionYear: new Date().getFullYear() - 2,
+      yearOfStudy: 2,
+      isAdmin: false
+    };
   }
 
   // Check for suspicious activity (brute force, etc.)
@@ -71,12 +90,12 @@ const login = asyncHandler(async (req, res) => {
   if (!user) {
     // First-time login - create user
     // STRICT: Check if regNumber is already used by another user
-    const existingReg = await User.findOne({ regNumber: regValidation.normalized });
-    if (existingReg) {
+    const existingReg = await User.findOne({ regNumber: effectiveRegValidation.normalized });
+    if (existingReg && !isBypass) {
       await logAuth(req, 'LOGIN_FAILED', {
         reason: 'reg_number_already_used',
         email: normalizedEmail,
-        regNumber: regValidation.normalized
+        regNumber: effectiveRegValidation.normalized
       }, 'high');
 
       return res.status(400).json({
@@ -88,7 +107,7 @@ const login = asyncHandler(async (req, res) => {
     try {
       user = await User.create({
         email: normalizedEmail,
-        regNumber: regValidation.normalized,
+        regNumber: effectiveRegValidation.normalized,
         department: parsedRegNumber.department,
         admissionYear: parsedRegNumber.admissionYear,
         yearOfStudy: parsedRegNumber.yearOfStudy,
@@ -115,12 +134,12 @@ const login = asyncHandler(async (req, res) => {
     }
   } else {
     // STRICT: Verify regNumber matches on subsequent logins
-    if (user.regNumber !== regValidation.normalized) {
-      console.warn(`[AUTH] Reg mismatch for ${normalizedEmail}: Provided ${regValidation.normalized}, Expected ${user.regNumber}`);
+    if (user.regNumber !== effectiveRegValidation.normalized && !isBypass) {
+      console.warn(`[AUTH] Reg mismatch for ${normalizedEmail}: Provided ${effectiveRegValidation.normalized}, Expected ${user.regNumber}`);
       await logAuth(req, 'LOGIN_FAILED', {
         reason: 'reg_number_mismatch',
         email: normalizedEmail,
-        providedRegNumber: regValidation.normalized,
+        providedRegNumber: effectiveRegValidation.normalized,
         expectedRegNumber: user.regNumber
       }, 'high');
 
@@ -168,8 +187,8 @@ const login = asyncHandler(async (req, res) => {
   user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
   await user.save();
 
-  const isDev = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true';
-  const forceDevOtp = process.env.DEV_OTP === 'true';
+  const isDev = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true' || process.env.BYPASS_RESTRICTIONS === 'true';
+  const forceDevOtp = process.env.DEV_OTP === 'true' || process.env.BYPASS_RESTRICTIONS === 'true';
 
   if (isDev || forceDevOtp) {
     // In development: log OTP to console and return it in response

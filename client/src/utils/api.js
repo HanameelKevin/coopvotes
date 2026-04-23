@@ -4,7 +4,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -29,9 +29,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const requestUrl = error.config?.url || '';
-    const isLoginRequest = requestUrl.includes('/auth/login');
+    const isLoginRequest = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/verify-otp');
+    const isAuthCheck = requestUrl.includes('/auth/me');
 
-    if (error.response?.status === 401 && !isLoginRequest) {
+    // Don't redirect for login/OTP requests or initial auth check failures
+    if (error.response?.status === 401 && !isLoginRequest && !isAuthCheck) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }

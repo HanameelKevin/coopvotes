@@ -3,6 +3,8 @@ const Election = require('../models/Election');
 const { protect, authorize } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/validate');
 
+const cache = require('../utils/cache');
+
 /**
  * @desc    Get all candidates with filters
  * @route   GET /api/candidates
@@ -10,6 +12,18 @@ const { asyncHandler } = require('../middleware/validate');
  */
 const getCandidates = asyncHandler(async (req, res) => {
   const { position, department, approved } = req.query;
+  const cacheKey = `candidates_${position || 'all'}_${department || 'all'}_${approved || 'all'}`;
+
+  // Try cache
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.status(200).json({
+      success: true,
+      count: cachedData.length,
+      data: cachedData,
+      cached: true
+    });
+  }
 
   const query = {};
 
@@ -29,6 +43,9 @@ const getCandidates = asyncHandler(async (req, res) => {
   const candidates = await Candidate.find(query)
     .populate('userId', 'email department')
     .sort({ position: 1, votes: -1 });
+
+  // Save to cache for 1 minute
+  cache.set(cacheKey, candidates, 60);
 
   res.status(200).json({
     success: true,
@@ -103,6 +120,9 @@ const createCandidate = asyncHandler(async (req, res) => {
     approvedAt: new Date()
   });
 
+  // Clear cache
+  cache.flushAll();
+
   res.status(201).json({
     success: true,
     data: candidate
@@ -140,6 +160,9 @@ const updateCandidate = asyncHandler(async (req, res) => {
     { new: true, runValidators: true }
   );
 
+  // Clear cache
+  cache.flushAll();
+
   res.status(200).json({
     success: true,
     data: candidate
@@ -173,6 +196,9 @@ const updateOfflineVotes = asyncHandler(async (req, res) => {
   candidate.offlineVotes = offlineVotes;
   await candidate.save();
 
+  // Clear cache
+  cache.flushAll();
+
   res.status(200).json({
     success: true,
     data: candidate
@@ -195,6 +221,9 @@ const deleteCandidate = asyncHandler(async (req, res) => {
   }
 
   await candidate.deleteOne();
+
+  // Clear cache
+  cache.flushAll();
 
   res.status(200).json({
     success: true,

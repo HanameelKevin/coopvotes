@@ -64,6 +64,8 @@ const STRICT_REG_NUMBER_REGEX = /^[A-Za-z][0-9]{1,4}[/-][0-9]{4,8}[/-][0-9]{2,4}
 // Relaxed regex for development: letter + 1-4 digits + separator + 3-8 digits + separator + 2-4 digit year
 // Matches: C026/405411/2024, B08/1234/2023, D33-1234-24, etc.
 const FLEXIBLE_REG_NUMBER_REGEX = /^[A-Za-z][0-9]{1,4}[/-][0-9]{3,8}[/-][0-9]{2,4}$/;
+// Ultra-relaxed regex for pitch/demo mode: any alphanumeric with some separators
+const PITCH_REG_NUMBER_REGEX = /^[A-Z0-9/-]{3,20}$/i;
 
 /**
  * Validate registration number format

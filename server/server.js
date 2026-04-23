@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const path = require('path');
+const compression = require('compression');
 
 // Load environment variables
 dotenv.config();
@@ -26,6 +27,9 @@ const { generalLimiter } = require('./middleware/rateLimiter');
 // Initialize express app
 const app = express();
 app.set('trust proxy', 1);
+
+// Use compression
+app.use(compression());
 
 // Connect to database
 connectDB();
