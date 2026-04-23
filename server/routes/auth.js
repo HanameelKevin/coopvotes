@@ -12,8 +12,9 @@ router.post('/login', authLimiter, [
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Invalid email format')
     .custom((value) => {
-      // Allow any email in development, but enforce university email in production
-      if (process.env.NODE_ENV === 'production' && !value.toLowerCase().endsWith('@student.cuk.ac.ke')) {
+      // Allow any email in development, or if DEV_OTP is enabled (for testing)
+      const allowAnyEmail = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true';
+      if (!allowAnyEmail && !value.toLowerCase().endsWith('@student.cuk.ac.ke')) {
         throw new Error('Email must be a @student.cuk.ac.ke address');
       }
       return true;
@@ -24,13 +25,14 @@ router.post('/login', authLimiter, [
     .custom((value) => {
       const { STRICT_REG_NUMBER_REGEX, FLEXIBLE_REG_NUMBER_REGEX } = require('../utils/regParser');
       const normalized = value.trim().toUpperCase().replace(/-/g, '/');
-      // In development, allow flexible formats (e.g., B08/1234/2023)
+      // In development or DEV_OTP mode, allow flexible formats (e.g., B08/1234/2023)
       // In production, enforce strict format (e.g., C026/405411/2024)
-      const regex = process.env.NODE_ENV === 'production' ? STRICT_REG_NUMBER_REGEX : FLEXIBLE_REG_NUMBER_REGEX;
+      const allowFlexible = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true';
+      const regex = allowFlexible ? FLEXIBLE_REG_NUMBER_REGEX : STRICT_REG_NUMBER_REGEX;
       if (!regex.test(normalized)) {
-        const hint = process.env.NODE_ENV === 'production'
-          ? 'Invalid registration number format. Expected: C026/405411/2024'
-          : 'Invalid registration number format. Expected: C026/405411/2024 or B08/1234/23';
+        const hint = allowFlexible
+          ? 'Invalid registration number format. Expected: C026/405411/2024 or B08/1234/23'
+          : 'Invalid registration number format. Expected: C026/405411/2024';
         throw new Error(hint);
       }
       return true;
