@@ -56,7 +56,8 @@ app.use(helmet({
 
 // CORS configuration - Allow Vercel and local development
 const allowedOrigins = [
-  /^http:\/\/localhost:\d+$/,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
   process.env.FRONTEND_URL,
   /https:\/\/.*\.vercel\.app$/
 ].filter(Boolean);
