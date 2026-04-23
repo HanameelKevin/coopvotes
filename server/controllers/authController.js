@@ -168,9 +168,10 @@ const login = asyncHandler(async (req, res) => {
   user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
   await user.save();
 
-  const isDev = process.env.NODE_ENV !== 'production';
+  const isDev = process.env.NODE_ENV !== 'production' || process.env.DEV_OTP === 'true';
+  const forceDevOtp = process.env.DEV_OTP === 'true';
 
-  if (isDev) {
+  if (isDev || forceDevOtp) {
     // In development: log OTP to console and return it in response
     // so users don't need access to a real email inbox
     console.log(`\n🔐 [DEV MODE] OTP for ${normalizedEmail}: ${otp}\n`);

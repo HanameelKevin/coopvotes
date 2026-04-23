@@ -17,7 +17,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   // Pre-fill test credentials in development
-  if (import.meta.env.MODE === 'development' && !email && !regNumber) {
+  if (import.meta.env.MODE === 'development' && !email && !regNumber && !otpStep) {
     setEmail('test@gmail.com');
     setRegNumber('B08/1234/2023');
   }
