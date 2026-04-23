@@ -66,8 +66,7 @@ const Login = () => {
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'Authentication failed. Please try again.';
-      const devHint = import.meta.env.MODE === 'development' ? ' (check server console for OTP)' : '';
-      setError(msg + devHint);
+      setError(msg);
     } finally {
       setLoading(false);
     }
