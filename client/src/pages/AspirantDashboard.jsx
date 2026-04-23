@@ -29,13 +29,14 @@ const AspirantDashboard = () => {
 
     for (const position of positions) {
       const positionData = resultsData.results[position];
+      if (!positionData) continue;
 
-      if (position === 'global') {
-        // President results
-        const myCandidacy = positionData.find(c => c.name === user?.email);
+      if (positionData.global) {
+        // President or other university-wide results
+        const myCandidacy = positionData.global.find(c => c.name === user?.email);
         if (myCandidacy) {
           myCandidacies.push({
-            position: 'President',
+            position,
             department: 'University-wide',
             ...myCandidacy
           });

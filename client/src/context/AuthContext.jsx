@@ -22,19 +22,27 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
         const response = await api.get('/auth/me');
-        setUser(response.data.data);
-        // Also fetch election status
-        fetchElectionStatus();
-      } catch (error) {
-        localStorage.removeItem('token');
+        if (response.data && response.data.data) {
+          setUser(response.data.data);
+          // Also fetch election status
+          fetchElectionStatus().catch(err => console.error("Election status fetch failed:", err));
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } else {
         setUser(null);
       }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchElectionStatus = async () => {

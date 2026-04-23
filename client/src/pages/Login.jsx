@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { isUniversityEmail } from '../utils/helpers';
+import { isUniversityEmail, getEmailHelpMessage } from '../utils/helpers';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -51,6 +51,16 @@ const Login = () => {
           if (data.devOtp) {
             setOtp(data.devOtp);
             setDevOtp(data.devOtp);
+            
+            // Auto-copy OTP to clipboard for pitch convenience
+            try {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(data.devOtp);
+                console.log('OTP copied to clipboard');
+              }
+            } catch (copyErr) {
+              console.warn('Could not auto-copy OTP:', copyErr);
+            }
           }
         } else {
           navigate('/dashboard');
@@ -152,7 +162,7 @@ const Login = () => {
                     />
                     <p className="text-[10px] text-coop-green mt-2 font-bold flex items-center ml-1">
                       <span className="w-1.5 h-1.5 bg-coop-green rounded-full mr-2"></span>
-                      USE YOUR STUDENT EMAIL
+                      {getEmailHelpMessage()}
                     </p>
                   </div>
 
@@ -171,7 +181,7 @@ const Login = () => {
                     />
                     <p className="text-[10px] text-coop-gold mt-2 font-bold flex items-center ml-1">
                       <span className="w-1.5 h-1.5 bg-coop-gold rounded-full mr-2"></span>
-                      USE STUDENT REGISTRATION NUMBER
+                      USE YOUR STUDENT REG NUMBER OR ID
                     </p>
                   </div>
                 </>

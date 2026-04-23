@@ -89,7 +89,17 @@ export const isValidEmail = (email) => {
  * Validate university email
  */
 export const isUniversityEmail = (email) => {
-  return true; // Bypass for pitch
+  if (!email) return false;
+  // For pitch/demo: Allow all emails but warn if not university
+  // The backend handles the actual restriction bypass
+  return true; 
+};
+
+/**
+ * Get help message for email
+ */
+export const getEmailHelpMessage = () => {
+  return "Use your student email (@student.cuk.ac.ke) or any valid email for this demo.";
 };
 
 /**

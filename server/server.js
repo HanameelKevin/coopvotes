@@ -99,6 +99,10 @@ app.use('/api/vote', voteRoutes);
 app.use('/api/election', electionRoutes);
 app.use('/api/admin', adminRoutes);
 
+// --- STATIC FILES & SPA ROUTING ---
+const clientPath = path.join(__dirname, '../client/dist');
+app.use(express.static(clientPath));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -139,12 +143,17 @@ app.get('/api/security/status', (req, res) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
+// 404 handler for API
+app.use('/api/*', (req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: 'API route not found'
   });
+});
+
+// SPA routing: Serve index.html for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
 // Global error handler
