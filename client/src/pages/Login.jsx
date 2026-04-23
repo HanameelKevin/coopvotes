@@ -16,18 +16,26 @@ const Login = () => {
   const { login, verifyOtp } = useAuth();
   const navigate = useNavigate();
 
+  // Pre-fill test credentials in development
+  if (import.meta.env.MODE === 'development' && !email && !regNumber) {
+    setEmail('test@gmail.com');
+    setRegNumber('B08/1234/2023');
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (!email || !regNumber) {
       setError('Please fill in all fields');
       return;
     }
 
     if (!isUniversityEmail(email)) {
-      setError('Please use your university email (@student.cuk.ac.ke)');
+      const devMsg = import.meta.env.MODE === 'development'
+        ? 'Only university emails (@student.cuk.ac.ke) are allowed in production. Development mode bypass.'
+        : 'Please use your university email (@student.cuk.ac.ke)';
+      setError(devMsg);
       return;
     }
 
@@ -40,7 +48,6 @@ const Login = () => {
           setTempUserId(data.userId);
           setUserEmail(data.email);
           setOtpStep(true);
-          // Dev mode: auto-fill the OTP from the response
           if (data.devOtp) {
             setOtp(data.devOtp);
             setDevOtp(data.devOtp);
@@ -58,46 +65,33 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Authentication failed. Please try again.');
+      const msg = err.response?.data?.message || 'Authentication failed. Please try again.';
+      const devHint = import.meta.env.MODE === 'development' ? ' (check server console for OTP)' : '';
+      setError(msg + devHint);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo and Title */}
-        <div className="text-center mb-10">
-          <img 
-            src="/logo.png" 
-            alt="CoopVotes Logo" 
-            className="w-48 h-auto mx-auto drop-shadow-xl"
-          />
-        </div>
-
-        {/* Login Form */}
-        <div className="glass-panel p-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-coop-green to-coop-gold"></div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center tracking-tight">
     <div className="min-h-screen relative flex items-center justify-center p-4 lg:p-0 overflow-hidden">
       <div className="tech-grid opacity-50"></div>
-      
+
       {/* Main Container */}
       <div className="flex flex-col lg:flex-row w-full max-w-6xl bg-white/40 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_22px_70px_4px_rgba(0,0,0,0.1)] border border-white/50 overflow-hidden z-10 animate-entrance">
-        
+
         {/* Left Side: Branding / Info (Hidden on mobile) */}
         <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-coop-green to-emerald-900 p-16 flex-col justify-between relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-          
+
           <div className="relative z-10">
             <img src="/logo.png" alt="CUK Logo" className="h-20 w-auto brightness-0 invert shadow-2xl mb-8" />
             <h1 className="text-5xl font-black text-white leading-tight mb-4 font-outfit">
-              Secure <br/> University <br/> Voting.
+              Secure <br /> University <br /> Voting.
             </h1>
             <div className="w-20 h-1.5 bg-coop-gold rounded-full mb-8"></div>
             <p className="text-white/80 text-xl font-medium tracking-wide">
-              The Co-operative University of Kenya <br/> Main Campus — Karen.
+              The Co-operative University of Kenya <br /> Main Campus — Karen.
             </p>
             <p className="text-white/50 text-xs mt-4 font-bold uppercase tracking-[0.2em]">
               Ushirika Road, Nairobi
@@ -187,9 +181,9 @@ const Login = () => {
                   <div className="text-center mb-6">
                     <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🔑</div>
                     <h3 className="text-xl font-bold text-gray-900">One-Time Password</h3>
-                    <p className="text-sm text-gray-500 mt-1">We've sent a 6-digit code to <br/> <span className="text-coop-green font-bold">{userEmail}</span></p>
+                    <p className="text-sm text-gray-500 mt-1">We've sent a 6-digit code to <br /> <span className="text-coop-green font-bold">{userEmail}</span></p>
                   </div>
-                  
+
                   <label htmlFor="otp" className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 text-center">
                     ENTER SECURE OTP
                   </label>
@@ -228,10 +222,15 @@ const Login = () => {
                     </>
                   )}
                 </button>
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-500 mt-8 font-medium">
-          &copy; {new Date().getFullYear()} The Co-operative University of Kenya. All rights reserved.
-        </p>
+              </div>
+            </form>
+
+            {/* Footer */}
+            <p className="text-center text-xs text-gray-500 mt-8 font-medium">
+              &copy; {new Date().getFullYear()} The Co-operative University of Kenya. All rights reserved.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -12,7 +12,8 @@ router.post('/login', authLimiter, [
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Invalid email format')
     .custom((value) => {
-      if (!value.toLowerCase().endsWith('@student.cuk.ac.ke')) {
+      // Allow any email in development, but enforce university email in production
+      if (process.env.NODE_ENV === 'production' && !value.toLowerCase().endsWith('@student.cuk.ac.ke')) {
         throw new Error('Email must be a @student.cuk.ac.ke address');
       }
       return true;
@@ -20,8 +21,20 @@ router.post('/login', authLimiter, [
   body('regNumber')
     .trim()
     .notEmpty().withMessage('Registration number is required')
-    .matches(/^[A-Za-z][0-9]{2,3}\/[0-9]{6}\/[0-9]{4}$/)
-    .withMessage('Format: [Letter][2-3 digits]/[6 digits]/[4-digit year]  e.g. C026/405411/2024 or B08/309433/2023')
+    .custom((value) => {
+      const { STRICT_REG_NUMBER_REGEX, FLEXIBLE_REG_NUMBER_REGEX } = require('../utils/regParser');
+      const normalized = value.trim().toUpperCase().replace(/-/g, '/');
+      // In development, allow flexible formats (e.g., B08/1234/2023)
+      // In production, enforce strict format (e.g., C026/405411/2024)
+      const regex = process.env.NODE_ENV === 'production' ? STRICT_REG_NUMBER_REGEX : FLEXIBLE_REG_NUMBER_REGEX;
+      if (!regex.test(normalized)) {
+        const hint = process.env.NODE_ENV === 'production'
+          ? 'Invalid registration number format. Expected: C026/405411/2024'
+          : 'Invalid registration number format. Expected: C026/405411/2024 or B08/1234/23';
+        throw new Error(hint);
+      }
+      return true;
+    })
     .toUpperCase(),
   validate
 ], login);

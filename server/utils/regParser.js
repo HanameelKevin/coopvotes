@@ -61,6 +61,9 @@ const DEPARTMENT_NAMES = {
 // Accept ANY letter as leading character and allow flexible sequence lengths
 // Matches: C026/405411/2024, B08/309433/2023, D33-1234-2024, etc.
 const STRICT_REG_NUMBER_REGEX = /^[A-Za-z][0-9]{1,4}[/-][0-9]{4,8}[/-][0-9]{2,4}$/;
+// Relaxed regex for development: letter + 1-4 digits + separator + 3-8 digits + separator + 2-4 digit year
+// Matches: C026/405411/2024, B08/1234/2023, D33-1234-24, etc.
+const FLEXIBLE_REG_NUMBER_REGEX = /^[A-Za-z][0-9]{1,4}[/-][0-9]{3,8}[/-][0-9]{2,4}$/;
 
 /**
  * Validate registration number format
@@ -256,5 +259,6 @@ module.exports = {
   validateRegNumberFormat,
   DEPARTMENT_MAP,
   DEPARTMENT_NAMES,
-  STRICT_REG_NUMBER_REGEX
+  STRICT_REG_NUMBER_REGEX,
+  FLEXIBLE_REG_NUMBER_REGEX
 };

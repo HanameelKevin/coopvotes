@@ -25,18 +25,33 @@ const protect = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    if (!decoded || !decoded.id) {
+      console.warn(`[AUTH] Decoded token missing ID: ${JSON.stringify(decoded)}`);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token structure'
+      });
+    }
+
     // Get user from token
     req.user = await User.findById(decoded.id).select('-password');
 
     if (!req.user) {
+      console.warn(`[AUTH] Token user not found: ${decoded.id}`);
       return res.status(401).json({
         success: false,
-        message: 'User not found'
+        message: 'User found with this token no longer exists'
       });
     }
 
     next();
   } catch (error) {
+    // Log detailed error for debugging
+    console.error(`[AUTH ERROR] ${error.name}: ${error.message}`, {
+      stack: error.stack,
+      token: token.substring(0, 10) + '...'
+    });
+
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
