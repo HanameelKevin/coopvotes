@@ -27,19 +27,24 @@ const VerifyVote = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-lg">
-        {/* Back navigation */}
-        <Link to="/login" className="text-coop-green text-sm font-medium hover:underline mb-6 inline-block">
-          &larr; Back to Platform
-        </Link>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-1/2 h-1/2 bg-coop-green/5 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-1/2 h-1/2 bg-coop-gold/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }}></div>
 
+      <div className="w-full max-w-lg z-10">
+        {/* Back navigation */}
+        <Link to="/dashboard" className="group text-gray-500 text-sm font-bold hover:text-coop-green mb-6 inline-flex items-center transition-all bg-white/50 backdrop-blur-md px-4 py-2 rounded-full shadow-sm">
+          <span className="mr-2 transition-transform group-hover:-translate-x-1">&larr;</span> Back to Dashboard
+        </Link>
+          
         {/* Verification Card */}
-        <div className="glass-panel p-8">
+        <div className="glass-panel p-10 shadow-2xl border-t-8 border-coop-gold animate-slide-up">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Verify Election Vote</h1>
-            <p className="text-sm text-gray-500 mt-2">
-              The blockchain ledger ensures your vote is immutable. Paste your receipt hash below.
+            <div className="text-5xl mb-4 animate-entrance">🔐</div>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Audit Portal</h1>
+            <p className="text-sm text-gray-500 mt-2 font-medium">
+              Verify your vote on the secure immutable ledger.
             </p>
           </div>
 

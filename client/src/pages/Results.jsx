@@ -8,8 +8,8 @@ import { getDepartmentName } from '../utils/helpers';
 import ElectionStatus from '../components/ElectionStatus';
 import confetti from 'canvas-confetti';
 
-const POSITIONS = ['President', 'Congress Person', 'Male Delegate', 'Female Delegate'];
-const DEPARTMENTS = ['BIT', 'BBM', 'CS', 'COMM', 'LAW', 'EDU'];
+const POSITIONS = ['President', 'Congress Person'];
+const DEPARTMENTS = ['BIT', 'BBM', 'CS', 'COMM', 'LAW', 'EDU', 'MATHS', 'CATER', 'SCI'];
 
 const Results = () => {
   const { user } = useAuth();
@@ -148,22 +148,22 @@ const Results = () => {
 
         {/* Election Summary */}
         {resultsData?.election && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="glass-card p-5 border-t-4 border-coop-green hover:border-green-600">
-              <p className="text-sm text-gray-500 font-medium">Total Votes</p>
-              <p className="text-2xl font-bold text-coop-green mt-1">{resultsData.election.totalVotes}</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 animate-slide-up">
+            <div className="glass-card p-5 border-t-4 border-coop-green stagger-1">
+              <p className="text-xs text-gray-400 font-bold uppercase">Total Votes</p>
+              <p className="text-2xl font-black text-coop-green mt-1">{resultsData.election.totalVotes}</p>
             </div>
-            <div className="glass-card p-5 border-t-4 border-blue-500 hover:border-blue-600">
-              <p className="text-sm text-gray-500 font-medium">Eligible Voters</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">{resultsData.election.totalVoters}</p>
+            <div className="glass-card p-5 border-t-4 border-blue-500 stagger-2">
+              <p className="text-xs text-gray-400 font-bold uppercase">Eligible Voters</p>
+              <p className="text-2xl font-black text-blue-600 mt-1">{resultsData.election.totalVoters}</p>
             </div>
-            <div className="glass-card p-5 border-t-4 border-purple-500 hover:border-purple-600">
-              <p className="text-sm text-gray-500 font-medium">Turnout</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">{Math.round(resultsData.election.turnout)}%</p>
+            <div className="glass-card p-5 border-t-4 border-purple-500 stagger-3">
+              <p className="text-xs text-gray-400 font-bold uppercase">Turnout</p>
+              <p className="text-2xl font-black text-purple-600 mt-1">{Math.round(resultsData.election.turnout)}%</p>
             </div>
-            <div className="glass-card p-5 border-t-4 border-gray-700 hover:border-gray-900">
-              <p className="text-sm text-gray-500 font-medium">Election Year</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{resultsData.election.year}</p>
+            <div className="glass-card p-5 border-t-4 border-gray-700 stagger-4">
+              <p className="text-xs text-gray-400 font-bold uppercase">Year</p>
+              <p className="text-2xl font-black text-gray-900 mt-1">{resultsData.election.year}</p>
             </div>
           </div>
         )}
@@ -277,12 +277,12 @@ const Results = () => {
 
       {/* Results Display */}
       {positionResults.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-md p-8 text-center">
-          <div className="text-6xl mb-4">📭</div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Candidates</h2>
-          <p className="text-gray-500">
-            There are no candidates for this position
-            {selectedPosition !== 'President' && ` in ${getDepartmentName(activeDepartment)}`}.
+        <div className="bg-white/50 backdrop-blur-xl rounded-2xl border border-dashed border-gray-200 p-12 text-center animate-entrance">
+          <div className="text-6xl mb-4 animate-float">📭</div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2">Results Pending</h2>
+          <p className="text-gray-500 max-w-sm mx-auto">
+            There are no candidates recorded for <span className="text-coop-green font-bold">{selectedPosition}</span>
+            {selectedPosition !== 'President' && ` in the ${getDepartmentName(activeDepartment)} department`}.
           </p>
         </div>
       ) : viewMode === 'cards' ? (

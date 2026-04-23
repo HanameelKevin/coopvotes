@@ -15,6 +15,7 @@ const cache = require('../utils/cache');
  */
 const login = asyncHandler(async (req, res) => {
   const { email, regNumber } = req.body;
+  console.log(`[AUTH] Login attempt received for: ${email}`);
 
   // Normalize email to lowercase
   const normalizedEmail = email?.toLowerCase().trim();
@@ -22,6 +23,7 @@ const login = asyncHandler(async (req, res) => {
   // STRICT: Validate registration number format
   const regValidation = validateRegNumberFormat(regNumber);
   if (!regValidation.isValid) {
+    console.warn(`[AUTH] Invalid reg format: ${regNumber} for ${normalizedEmail}`);
     await logAuth(req, 'LOGIN_FAILED', {
       reason: 'invalid_reg_number',
       email: normalizedEmail,
@@ -99,6 +101,7 @@ const login = asyncHandler(async (req, res) => {
         department: user.department
       }, 'low');
     } catch (error) {
+      console.error(`[AUTH] User creation failed for ${normalizedEmail}:`, error);
       await logAuth(req, 'LOGIN_FAILED', {
         reason: 'user_creation_failed',
         email: normalizedEmail,
@@ -107,12 +110,13 @@ const login = asyncHandler(async (req, res) => {
 
       return res.status(500).json({
         success: false,
-        message: 'Failed to create user account'
+        message: 'Failed to create user account: ' + error.message
       });
     }
   } else {
     // STRICT: Verify regNumber matches on subsequent logins
     if (user.regNumber !== regValidation.normalized) {
+      console.warn(`[AUTH] Reg mismatch for ${normalizedEmail}: Provided ${regValidation.normalized}, Expected ${user.regNumber}`);
       await logAuth(req, 'LOGIN_FAILED', {
         reason: 'reg_number_mismatch',
         email: normalizedEmail,
@@ -164,7 +168,25 @@ const login = asyncHandler(async (req, res) => {
   user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
   await user.save();
 
-  // Send OTP via email
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  if (isDev) {
+    // In development: log OTP to console and return it in response
+    // so users don't need access to a real email inbox
+    console.log(`\n🔐 [DEV MODE] OTP for ${normalizedEmail}: ${otp}\n`);
+    return res.status(200).json({
+      success: true,
+      message: 'OTP generated (dev mode — check server console or use the devOtp field)',
+      data: {
+        userId: user._id,
+        email: user.email,
+        requiresOtp: true,
+        devOtp: otp  // Only included in development builds
+      }
+    });
+  }
+
+  // Production: send OTP via email
   const { sendEmail } = require('../utils/email');
   const emailSent = await sendEmail({
     to: normalizedEmail,

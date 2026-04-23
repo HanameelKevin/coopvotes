@@ -1,27 +1,37 @@
 /**
  * Registration Number Parser
  *
- * Parses registration numbers in STRICT format: "CXXX/XXXXXX/XXXX"
- * Example: "C026/405411/2024"
- * - C026 → Department code (C followed by 3 digits)
- * - 405411 → Student sequence number (6 digits)
- * - 2024 → Year of admission (4 digits)
+ * Parses registration numbers in format: "[LETTER][2-3 digits]/[6 digits]/[4 digits]"
+ * Example: "C026/405411/2024", "B08/309433/2023", "A01/123456/2024"
+ * - The letter prefix maps to a faculty/department
+ * - Any letter is accepted; unknown prefixes fall back by letter
  *
- * STRICT REGEX: ^C[0-9]{3}/[0-9]{6}/[0-9]{4}$
+ * REGEX: ^[A-Za-z][0-9]{2,3}/[0-9]{6}/[0-9]{4}$
  */
 
 // Department code mapping (based on C-code system)
 const DEPARTMENT_MAP = {
+  // IT & Computer Science (C-prefix)
   'C026': 'BIT',       // Business Information Technology
-  'C027': 'BBM',       // Business Management
   'C028': 'CS',        // Computer Science
-  'C029': 'COMM',      // Commerce
-  'C030': 'LAW',       // Law
-  'C031': 'EDU',       // Education
   'C032': 'ADMIN',     // Administration
+  // Business (B-prefix)
+  'B08': 'BBM',        // Business Management (v2)
+  'B027': 'BBM',       // Business Management
+  'B029': 'COMM',      // Commerce
+  'B035': 'BCOM',      // Business Commerce
+  // Maths (M-prefix)
+  'M001': 'MATHS',     // Mathematics
+  // Catering (D-prefix)
+  'D001': 'CATER',     // Catering
+  // Law (L-prefix)
+  'L030': 'LAW',       // Law
+  // Sciences (H-prefix)
+  'H001': 'SCI',       // Sciences
+  // Others/Misc
+  'C031': 'EDU',       // Education
   'C033': 'BSC',       // Bachelor of Science
   'C034': 'BA',        // Bachelor of Arts
-  'C035': 'BCOM',      // Business Commerce
   'ADMIN': 'ADMIN'     // Admin accounts
 };
 
@@ -33,6 +43,9 @@ const DEPARTMENT_NAMES = {
   'COMM': 'Commerce',
   'LAW': 'Law',
   'EDU': 'Education',
+  'MATHS': 'Mathematics',
+  'CATER': 'Catering',
+  'SCI': 'Sciences',
   'ADMIN': 'Administration',
   'BSC': 'Bachelor of Science',
   'BA': 'Bachelor of Arts',
@@ -40,11 +53,14 @@ const DEPARTMENT_NAMES = {
   'BITM': 'Business IT & Management',
   'DBM': 'Diploma Business Management',
   'DIT': 'Diploma Information Technology',
-  'DCS': 'Diploma Computer Science'
+  'DCS': 'Diploma Computer Science',
+  'OTHER': 'Other Department'
 };
 
-// STRICT REGEX for registration number format
-const STRICT_REG_NUMBER_REGEX = /^C[0-9]{3}\/[0-9]{6}\/[0-9]{4}$/;
+// Accept ANY letter as leading character (any department prefix)
+// Accept ANY letter as leading character and allow flexible sequence lengths
+// Matches: C026/405411/2024, B08/309433/2023, D33-1234-2024, etc.
+const STRICT_REG_NUMBER_REGEX = /^[A-Za-z][0-9]{1,4}[/-][0-9]{4,8}[/-][0-9]{2,4}$/;
 
 /**
  * Validate registration number format
@@ -59,13 +75,13 @@ function validateRegNumberFormat(regNumber) {
     };
   }
 
-  const normalized = regNumber.trim().toUpperCase();
+  const normalized = regNumber.trim().toUpperCase().replace(/-/g, '/');
 
   // STRICT FORMAT CHECK: C[0-9]{3}/[0-9]{6}/[0-9]{4}
   if (!STRICT_REG_NUMBER_REGEX.test(normalized)) {
     return {
       isValid: false,
-      error: 'Invalid registration number format. Expected format: CXXX/XXXXXX/XXXX (e.g., C026/405411/2024)'
+      error: 'Invalid registration number format. Expected: [Letter][2-3 digits]/[6 digits]/[4-digit year]  e.g. C026/405411/2024'
     };
   }
 
@@ -103,16 +119,35 @@ function parseRegNumber(regNumber) {
 
   // Parse STRICT format: CXXX/XXXXXX/XXXX
   const parts = normalized.split('/');
-  const [deptCode, sequence, admissionYearStr] = parts;
+  const [deptCode, sequence] = parts;
 
-  // Map C-code to department
-  const department = DEPARTMENT_MAP[deptCode];
+  // Map code to department — fallback from prefix letter, then generic
+  let department = DEPARTMENT_MAP[deptCode];
   if (!department) {
-    throw new Error(`Unknown department code: ${deptCode}. Valid codes: ${Object.keys(DEPARTMENT_MAP).join(', ')}`);
+    // Infer from leading letter — accept any letter
+    const prefixLetter = deptCode[0].toUpperCase();
+    const prefixFallback = {
+      'C': 'CS',
+      'B': 'BBM',
+      'M': 'MATHS',
+      'D': 'CATER',
+      'L': 'LAW',
+      'H': 'SCI',
+      'E': 'EDU',
+      'A': 'ADMIN',
+    };
+    department = prefixFallback[prefixLetter] || 'CS'; // generic fallback: CS
+    // Cache this so future lookups for same code are instant
+    DEPARTMENT_MAP[deptCode] = department;
   }
 
   // Parse admission year
+  let admissionYearStr = parts[2];
+  if (admissionYearStr.length === 2) {
+    admissionYearStr = '20' + admissionYearStr;
+  }
   const admissionYear = parseInt(admissionYearStr, 10);
+  
   if (isNaN(admissionYear) || admissionYear < 2000 || admissionYear > new Date().getFullYear() + 1) {
     throw new Error(`Invalid admission year: ${admissionYearStr}`);
   }

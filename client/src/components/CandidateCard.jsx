@@ -1,3 +1,4 @@
+import React from 'react';
 import { getInitials, getAvatarColor, truncate } from '../utils/helpers';
 
 const CandidateCard = ({ candidate, onSelect, isSelected, showVotes = false, disabled = false }) => {

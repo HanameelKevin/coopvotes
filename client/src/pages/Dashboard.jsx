@@ -81,15 +81,17 @@ const Dashboard = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+      <div className="mb-8 animate-slide-up">
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
           Welcome, {user?.email?.split('@')[0]}!
         </h1>
         <div className="flex flex-wrap items-center gap-4 mt-2">
-          <p className="text-gray-600">
+          <p className="text-gray-500 font-medium font-outfit">
             {user?.regNumber} • {getDepartmentName(user?.department)} • Year {user?.yearOfStudy}
           </p>
-          <ElectionStatus compact />
+          <div className="animate-pulse">
+            <ElectionStatus compact />
+          </div>
         </div>
       </div>
 
@@ -101,10 +103,10 @@ const Dashboard = () => {
 
       {/* Student Voting Progress */}
       {user?.role === 'student' && progress && (
-        <div className="glass-panel p-6 mb-8 border-l-4 border-coop-green">
+        <div className="glass-panel p-6 mb-8 border-l-8 border-coop-green animate-slide-up stagger-1 shadow-2xl">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Voting Progress</h2>
-            <span className={`font-bold text-lg ${progress.percentage === 100 ? 'text-coop-green' : 'text-blue-600'}`}>
+            <h2 className="text-xl font-black text-gray-900 uppercase tracking-widest">Voting Progress</h2>
+            <span className={`font-black text-2xl ${progress.percentage === 100 ? 'text-coop-green' : 'text-blue-600'}`}>
               {progress.percentage}%
             </span>
           </div>
@@ -144,24 +146,19 @@ const Dashboard = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-        <div className="glass-card p-5 border-t-4 border-t-coop-gold hover:border-t-coop-green">
-          <p className="text-sm text-gray-500 font-medium">Department</p>
-          <p className="text-xl font-bold text-gray-900 mt-1">{user?.department}</p>
-        </div>
-        <div className="glass-card p-5 border-t-4 border-t-blue-400 hover:border-t-blue-600">
-          <p className="text-sm text-gray-500 font-medium">Year of Study</p>
-          <p className="text-xl font-bold text-gray-900 mt-1">{user?.yearOfStudy}</p>
-        </div>
-        <div className="glass-card p-5 border-t-4 border-t-emerald-400 hover:border-t-emerald-600">
-          <p className="text-sm text-gray-500 font-medium">Role</p>
-          <p className="text-xl font-bold text-gray-900 mt-1 capitalize">{user?.role}</p>
-        </div>
-        <div className="glass-card p-5 border-t-4 border-t-purple-400 hover:border-t-purple-600">
-          <p className="text-sm text-gray-500 font-medium">Election</p>
-          <p className={`text-xl font-bold mt-1 ${isElectionActive ? 'text-green-600' : 'text-gray-400'}`}>
-            {isElectionActive ? 'Active' : 'Closed'}
-          </p>
-        </div>
+        {[
+          { label: 'Department', value: user?.department, color: 'border-t-coop-gold hover:border-t-coop-green', stagger: 'stagger-1' },
+          { label: 'Year of Study', value: user?.yearOfStudy, color: 'border-t-blue-400 hover:border-t-blue-600', stagger: 'stagger-2' },
+          { label: 'Role', value: user?.role, color: 'border-t-emerald-400 hover:border-t-emerald-600', stagger: 'stagger-3' },
+          { label: 'Election', value: isElectionActive ? 'Active' : 'Closed', color: 'border-t-purple-400 hover:border-t-purple-600', stagger: 'stagger-4' }
+        ].map((stat, i) => (
+          <div key={i} className={`glass-card p-5 border-t-4 ${stat.color} animate-entrance ${stat.stagger}`}>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-tighter">{stat.label}</p>
+            <p className={`text-xl font-black mt-1 ${stat.label === 'Election' && isElectionActive ? 'text-green-600' : 'text-gray-900'} capitalize`}>
+              {stat.value}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Action Cards */}

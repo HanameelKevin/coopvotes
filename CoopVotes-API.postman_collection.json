@@ -1,0 +1,1007 @@
+{
+    "info": {
+        "name": "CoopVotes API - Complete Collection",
+        "description": "All endpoints for CoopVotes system - The Co-operative University of Kenya voting platform",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "Health & Status",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"API is healthy\", function () {",
+                                    "    const json = pm.response.json();",
+                                    "    pm.expect(json).to.have.property(\"message\");",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "health"
+                            ]
+                        },
+                        "description": "Check if CoopVotes API is running"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Security Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/security/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "security",
+                                "status"
+                            ]
+                        },
+                        "description": "Get security features status"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Login (Step 1)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"student@student.cuk.ac.ke\",\n  \"regNumber\": \"C026/405411/2024\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Login with student credentials. Returns OTP for verification."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verify OTP (Step 2)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"otp\": \"123456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/verify-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "verify-otp"
+                            ]
+                        },
+                        "description": "Verify OTP sent to student email. Returns JWT token."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Current User",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "me"
+                            ]
+                        },
+                        "description": "Get authenticated user details"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Election Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/election-status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "election-status"
+                            ]
+                        },
+                        "description": "Get current election status for authenticated user"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "Logout current user"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Candidates",
+            "item": [
+                {
+                    "name": "Get All Candidates",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/candidates",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "candidates"
+                            ]
+                        },
+                        "description": "Get all candidates (Public - no auth required)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Candidate by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/candidates/{{candidateId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "candidates",
+                                "{{candidateId}}"
+                            ]
+                        },
+                        "description": "Get single candidate details by ID"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Candidates by Department",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/candidates/department/{{department}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "candidates",
+                                "department",
+                                "{{department}}"
+                            ]
+                        },
+                        "description": "Get candidates from specific department"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Candidate (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"position\": \"President\",\n  \"manifesto\": \"I will work to improve student life and services\",\n  \"department\": \"Engineering\",\n  \"image\": \"https://example.com/candidate.jpg\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/candidates",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "candidates"
+                            ]
+                        },
+                        "description": "Create new candidate (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Candidate (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"manifesto\": \"Updated manifesto text\",\n  \"image\": \"https://example.com/new-image.jpg\",\n  \"isApproved\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/candidates/{{candidateId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "candidates",
+                                "{{candidateId}}"
+                            ]
+                        },
+                        "description": "Update candidate information (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Offline Votes (Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"offlineVotes\": 50\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/candidates/{{candidateId}}/offlineVotes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "candidates",
+                                "{{candidateId}}",
+                                "offlineVotes"
+                            ]
+                        },
+                        "description": "Update offline vote count for a candidate (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Candidate (Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/candidates/{{candidateId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "candidates",
+                                "{{candidateId}}"
+                            ]
+                        },
+                        "description": "Delete a candidate (Admin only)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Votes",
+            "item": [
+                {
+                    "name": "Cast Vote",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"candidateId\": \"{{candidateId}}\",\n  \"position\": \"President\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/vote",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vote"
+                            ]
+                        },
+                        "description": "Cast a vote for a candidate"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Vote Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vote/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vote",
+                                "status"
+                            ]
+                        },
+                        "description": "Get current user's vote status and receipt"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verify Vote by Receipt",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/vote/verify?receipt={{receipt}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vote",
+                                "verify"
+                            ],
+                            "query": [
+                                {
+                                    "key": "receipt",
+                                    "value": "{{receipt}}"
+                                }
+                            ]
+                        },
+                        "description": "Verify a vote using receipt number (Public - no auth required)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Results",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vote/results",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vote",
+                                "results"
+                            ]
+                        },
+                        "description": "Get election results (requires user has voted)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verify Vote Chain (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vote/verify-chain",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vote",
+                                "verify-chain"
+                            ]
+                        },
+                        "description": "Verify vote chain integrity (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Export Results CSV (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vote/results/export",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vote",
+                                "results",
+                                "export"
+                            ]
+                        },
+                        "description": "Export results as CSV file (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Export Results PDF (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vote/results/export/pdf",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vote",
+                                "results",
+                                "export",
+                                "pdf"
+                            ]
+                        },
+                        "description": "Export results as PDF file (Admin only)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Election",
+            "item": [
+                {
+                    "name": "Get Current Election",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/election",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "election"
+                            ]
+                        },
+                        "description": "Get current active election (Public - no auth required)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Start Election (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"2024 Student Elections\",\n  \"year\": 2024,\n  \"positions\": [\"President\", \"Congress Person\", \"Male Delegate\", \"Female Delegate\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/election/start",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "election",
+                                "start"
+                            ]
+                        },
+                        "description": "Start a new election (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "End Election (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/election/end",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "election",
+                                "end"
+                            ]
+                        },
+                        "description": "End current election (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Election History (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/election/history",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "election",
+                                "history"
+                            ]
+                        },
+                        "description": "Get all past elections (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Election Stats (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/election/{{electionId}}/stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "election",
+                                "{{electionId}}",
+                                "stats"
+                            ]
+                        },
+                        "description": "Get statistics for specific election (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Election (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Updated Election Name\",\n  \"status\": \"active\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/election/{{electionId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "election",
+                                "{{electionId}}"
+                            ]
+                        },
+                        "description": "Update election details (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Election (Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/election/{{electionId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "election",
+                                "{{electionId}}"
+                            ]
+                        },
+                        "description": "Delete an election (Admin only)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Admin",
+            "item": [
+                {
+                    "name": "Get Audit Logs (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/audit-logs?limit=100&page=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "audit-logs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "100"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Get audit logs with filtering and pagination (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Security Alerts (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/security/alerts",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "security",
+                                "alerts"
+                            ]
+                        },
+                        "description": "Get security alerts and suspicious activity (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get System Stats (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "stats"
+                            ]
+                        },
+                        "description": "Get system statistics (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Votes Over Time (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/votes-over-time",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "votes-over-time"
+                            ]
+                        },
+                        "description": "Get votes timeline for analytics (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Vote Details (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/votes/{{voteId}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "votes",
+                                "{{voteId}}"
+                            ]
+                        },
+                        "description": "Get specific vote details (Admin only)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Force User Logout (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/admin/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "logout"
+                            ]
+                        },
+                        "description": "Force logout a specific user (Admin only)"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:5000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "userId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "candidateId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "electionId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "voteId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "receipt",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "department",
+            "value": "Engineering",
+            "type": "string"
+        }
+    ]
+}

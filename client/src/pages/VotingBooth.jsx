@@ -20,6 +20,7 @@ const VotingBooth = () => {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
   const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
+  const [finalReceipt, setFinalReceipt] = useState(null);
 
   // Fetch candidates
   const { data: candidatesData, isLoading } = useQuery({
@@ -113,6 +114,11 @@ const VotingBooth = () => {
       });
       setToast({ message: 'Vote cast successfully!', type: 'success' });
 
+      // Store receipt for display
+      if (currentPositionIndex === POSITIONS.length - 1) {
+        setFinalReceipt(voteMutation.data?.receiptHash);
+      }
+
       // Move to next position or finish
       if (currentPositionIndex < POSITIONS.length - 1) {
         setTimeout(() => {
@@ -160,6 +166,52 @@ const VotingBooth = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Voting Closed</h1>
           <p className="text-gray-600">The election is not currently active.</p>
         </div>
+      </div>
+    );
+  }
+
+  if (finalReceipt) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12 animate-slide-up">
+        <div className="glass-panel p-10 text-center border-t-8 border-coop-green shadow-2xl">
+          <div className="w-24 h-24 bg-green-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6 animate-entrance shadow-[0_0_40px_rgba(34,197,94,0.3)]">
+             <svg className="w-12 h-12 text-green-600 animate-float" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+             </svg>
+          </div>
+          <h1 className="text-4xl font-black text-gray-900 mb-2 tracking-tighter">BALLOT SIGNED</h1>
+          <p className="text-gray-500 mb-8 font-bold uppercase tracking-widest text-xs">Your cryptographic proof is ready</p>
+          
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-coop-green to-coop-gold rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative bg-white border border-gray-100 rounded-2xl p-6 mb-8 select-all font-mono text-sm break-all text-coop-green font-black shadow-inner">
+              {finalReceipt}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(finalReceipt);
+                setToast({ message: 'Receipt copied to clipboard!', type: 'info' });
+              }}
+              className="btn-secondary flex items-center justify-center"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+              Copy Receipt
+            </button>
+            <button 
+              onClick={() => navigate('/results')}
+              className="premium-btn"
+            >
+              View Live Results
+            </button>
+          </div>
+          <p className="mt-8 text-xs text-gray-400 font-medium">
+            Keep this receipt safe. You can use it to verify your vote in the audit portal.
+          </p>
+        </div>
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       </div>
     );
   }
@@ -295,7 +347,8 @@ const VotingBooth = () => {
           </button>
         )}
 
-        {hasVotedForPosition && (
+        {/* Show Next button if already voted OR if no candidates exist for this position */}
+        {(hasVotedForPosition || currentCandidates.length === 0) && (
           <button
             onClick={handleNext}
             disabled={currentPositionIndex === POSITIONS.length - 1}

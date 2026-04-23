@@ -4,6 +4,7 @@ import { Suspense, lazy } from 'react';
 
 // Components
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Loading from './components/Loading';
 
 // Lazy Loaded Pages
@@ -95,6 +96,7 @@ const AppContent = () => {
           </Routes>
         </Suspense>
       </main>
+      {user && <Footer />}
     </div>
   );
 };

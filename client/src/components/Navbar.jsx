@@ -15,18 +15,21 @@ const Navbar = () => {
     student: [
       { to: '/dashboard', label: 'Dashboard' },
       { to: '/vote', label: 'Vote' },
-      { to: '/results', label: 'Results' }
+      { to: '/results', label: 'Results' },
+      { to: '/verify', label: 'Audit Portal' }
     ],
     aspirant: [
       { to: '/dashboard', label: 'Dashboard' },
       { to: '/aspirant', label: 'My Campaign' },
-      { to: '/results', label: 'Results' }
+      { to: '/results', label: 'Results' },
+      { to: '/verify', label: 'Audit Portal' }
     ],
     admin: [
       { to: '/dashboard', label: 'Dashboard' },
       { to: '/admin', label: 'Admin Panel' },
-      { to: '/results', label: 'Results' }
-    ]
+      { to: '/results', label: 'Results' },
+      { to: '/verify', label: 'Audit Portal' }
+    ],
   };
 
   const links = navLinks[user?.role] || navLinks.student;
@@ -36,14 +39,12 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/dashboard" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-coop-green rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">CV</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">CoopVotes</h1>
-              <p className="text-xs text-gray-500">The Co-operative University of Kenya</p>
-            </div>
+          <Link to="/dashboard" className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="CoopVotes Logo" 
+              className="h-12 w-auto"
+            />
           </Link>
 
           {/* Navigation Links */}

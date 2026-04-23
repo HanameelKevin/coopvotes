@@ -20,8 +20,8 @@ router.post('/login', authLimiter, [
   body('regNumber')
     .trim()
     .notEmpty().withMessage('Registration number is required')
-    .matches(/^C[0-9]{3}\/[0-9]{6}\/[0-9]{4}$/)
-    .withMessage('Registration number must be in format CXXX/XXXXXX/XXXX (e.g., C026/405411/2024)')
+    .matches(/^[A-Za-z][0-9]{2,3}\/[0-9]{6}\/[0-9]{4}$/)
+    .withMessage('Format: [Letter][2-3 digits]/[6 digits]/[4-digit year]  e.g. C026/405411/2024 or B08/309433/2023')
     .toUpperCase(),
   validate
 ], login);

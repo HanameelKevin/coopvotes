@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
       validator: function (v) {
         return STRICT_REG_NUMBER_REGEX.test(v);
       },
-      message: 'Registration number must be in format CXXX/XXXXXX/XXXX (e.g., C026/405411/2024)'
+      message: 'Registration number must be in format [C|B|M|D|L|H]XX(X)/XXXXXX/XXXX (e.g., C026/405411/2024 or B08/309433/2023)'
     },
     // IMMUTABLE: Cannot be changed after creation
     immutable: true
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
   department: {
     type: String,
     required: true,
-    enum: ['BIT', 'BBM', 'CS', 'COMM', 'LAW', 'EDU', 'ADMIN']
+    enum: ['BIT', 'BBM', 'CS', 'COMM', 'LAW', 'EDU', 'ADMIN', 'MATHS', 'CATER', 'SCI', 'BSC', 'BA', 'BCOM']
   },
   yearOfStudy: {
     type: Number,
@@ -153,7 +153,13 @@ userSchema.virtual('departmentName').get(function () {
     'COMM': 'Commerce',
     'LAW': 'Law',
     'EDU': 'Education',
-    'ADMIN': 'Administration'
+    'MATHS': 'Mathematics',
+    'CATER': 'Catering',
+    'SCI': 'Sciences',
+    'ADMIN': 'Administration',
+    'BSC': 'Bachelor of Science',
+    'BA': 'Bachelor of Arts',
+    'BCOM': 'Business Commerce'
   };
   return deptMap[this.department] || this.department;
 });

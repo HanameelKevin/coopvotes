@@ -19,7 +19,7 @@ const voteSchema = new mongoose.Schema({
   },
   department: {
     type: String,
-    enum: ['BIT', 'BBM', 'CS', 'COMM', 'LAW', 'EDU', null],
+    enum: ['BIT', 'BBM', 'CS', 'COMM', 'LAW', 'EDU', 'ADMIN', 'MATHS', 'CATER', 'SCI', 'BSC', 'BA', 'BCOM', null],
     default: null
   },
   electionId: {
