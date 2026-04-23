@@ -89,10 +89,7 @@ export const isValidEmail = (email) => {
  * Validate university email
  */
 export const isUniversityEmail = (email) => {
-  const normalizedEmail = email?.toLowerCase().trim();
-  // In development, allow any valid email
-  if (import.meta.env.MODE === 'development') return true;
-  return normalizedEmail?.endsWith('@student.cuk.ac.ke') || normalizedEmail?.endsWith('@coop.ac.ke');
+  return true; // Bypass for pitch
 };
 
 /**

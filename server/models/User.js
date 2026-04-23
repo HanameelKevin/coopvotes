@@ -9,8 +9,8 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    // STRICT: Only allow @student.cuk.ac.ke emails
-    match: [/^[a-zA-Z0-9._%+-]+@student\.cuk\.ac\.ke$/, 'Email must be a valid @student.cuk.ac.ke address']
+    // RELAXED for pitch: Any valid email format
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please use a valid email address']
   },
   regNumber: {
     type: String,
@@ -18,12 +18,12 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     uppercase: true,
-    // STRICT: Must match CXXX/XXXXXX/XXXX format
+    // RELAXED for pitch: Any alphanumeric with some separators
     validate: {
       validator: function (v) {
-        return STRICT_REG_NUMBER_REGEX.test(v);
+        return /^[A-Z0-9/-]{3,20}$/i.test(v);
       },
-      message: 'Registration number must be in format [C|B|M|D|L|H]XX(X)/XXXXXX/XXXX (e.g., C026/405411/2024 or B08/309433/2023)'
+      message: 'Invalid registration number format'
     },
     // IMMUTABLE: Cannot be changed after creation
     immutable: true

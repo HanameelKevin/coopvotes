@@ -87,6 +87,13 @@ const login = asyncHandler(async (req, res) => {
   // Find existing user
   let user = await User.findOne({ email: normalizedEmail });
 
+  if (user && isBypass) {
+    // If in bypass mode, ensure user isn't locked out from previous failed attempts
+    user.lockUntil = undefined;
+    user.loginAttempts = 0;
+    await user.save();
+  }
+
   if (!user) {
     // First-time login - create user
     // STRICT: Check if regNumber is already used by another user
