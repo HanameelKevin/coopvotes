@@ -1,15 +1,15 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "client/dist",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "server/server.js"
+      "destination": "/server/server.js"
     },
     {
       "source": "/(.*)",
-      "destination": "client/dist/index.html"
+      "destination": "/index.html"
     }
   ]
 }
