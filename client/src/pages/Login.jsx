@@ -84,7 +84,7 @@ const Login = () => {
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
 
           <div className="relative z-10">
-            <img src="/logo.png" alt="CUK Logo" className="h-20 w-auto brightness-0 invert shadow-2xl mb-8" />
+            <img src="/logo.png" alt="CUK Logo" className="h-20 w-auto shadow-2xl mb-8" />
             <h1 className="text-5xl font-black text-white leading-tight mb-4 font-outfit">
               Secure <br /> University <br /> Voting.
             </h1>
