@@ -65,21 +65,6 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo and Title */}
-        <div className="text-center mb-10">
-          <img 
-            src="/logo.png" 
-            alt="CoopVotes Logo" 
-            className="w-48 h-auto mx-auto drop-shadow-xl"
-          />
-        </div>
-
-        {/* Login Form */}
-        <div className="glass-panel p-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-coop-green to-coop-gold"></div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center tracking-tight">
     <div className="min-h-screen relative flex items-center justify-center p-4 lg:p-0 overflow-hidden">
       <div className="tech-grid opacity-50"></div>
       
@@ -228,10 +213,15 @@ const Login = () => {
                     </>
                   )}
                 </button>
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-500 mt-8 font-medium">
-          &copy; {new Date().getFullYear()} The Co-operative University of Kenya. All rights reserved.
-        </p>
+              </div>
+
+              {/* Footer */}
+              <p className="text-center text-xs text-gray-500 mt-8 font-medium">
+                &copy; {new Date().getFullYear()} The Co-operative University of Kenya. All rights reserved.
+              </p>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
