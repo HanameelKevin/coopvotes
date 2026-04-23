@@ -54,13 +54,29 @@ app.use(helmet({
   }
 }));
 
-// CORS configuration - Relaxed for development, restrictive for production
-const allowedOrigins = process.env.NODE_ENV === 'development' 
-  ? [/^http:\/\/localhost:\d+$/] 
-  : [process.env.FRONTEND_URL || 'http://localhost:5173'];
+// CORS configuration - Allow Vercel and local development
+const allowedOrigins = [
+  /^http:\/\/localhost:\d+$/,
+  process.env.FRONTEND_URL,
+  /https:\/\/.*\.vercel\.app$/
+].filter(Boolean);
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (process.env.NODE_ENV === 'development') return callback(null, true);
+    
+    const isAllowed = allowedOrigins.some(pattern => 
+      typeof pattern === 'string' ? pattern === origin : pattern.test(origin)
+    );
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],

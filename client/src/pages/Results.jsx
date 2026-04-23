@@ -59,24 +59,27 @@ const Results = () => {
   const activeDepartment = selectedDepartment || user?.department;
 
   const positionResults = useMemo(() => {
-    if (!resultsData?.results) return [];
+    if (!resultsData?.results || !selectedPosition) return [];
 
     const results = resultsData.results[selectedPosition];
     if (!results) return [];
 
     if (results.global) {
-      return results.global;
+      return results.global || [];
     }
 
-    return results[activeDepartment] || [];
-  }, [activeDepartment, resultsData, selectedPosition]);
+    const dept = activeDepartment || user?.department;
+    return results[dept] || [];
+  }, [activeDepartment, resultsData, selectedPosition, user?.department]);
 
   const chartData = useMemo(
-    () =>
-      positionResults.map((candidate) => ({
-        name: candidate.name.split('@')[0],
-        totalVotes: candidate.totalVotes
-      })),
+    () => {
+      if (!Array.isArray(positionResults)) return [];
+      return positionResults.map((candidate) => ({
+        name: (candidate?.name || 'Unknown').split('@')[0],
+        totalVotes: candidate?.totalVotes || 0
+      }));
+    },
     [positionResults]
   );
 
