@@ -42,7 +42,11 @@ router.post('/login', authLimiter, [
 
 router.post('/verify-otp', authLimiter, [
   body('userId').notEmpty().withMessage('User ID is required').isMongoId(),
-  body('otp').notEmpty().withMessage('OTP is required').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+  body('otp').notEmpty().withMessage('OTP is required').custom((value) => {
+    if (process.env.DEV_MODE === 'true') return true;
+    if (value.length !== 6) throw new Error('OTP must be 6 digits');
+    return true;
+  }),
   validate
 ], verifyOtp);
 

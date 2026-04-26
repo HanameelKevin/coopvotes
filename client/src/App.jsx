@@ -1,14 +1,17 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 
 // Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Loading from './components/Loading';
+import PageTransition from './components/PageTransition';
 
 // Lazy Loaded Pages
 const Login = lazy(() => import('./pages/Login'));
+const DepartmentSelection = lazy(() => import('./pages/DepartmentSelection'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const VotingBooth = lazy(() => import('./pages/VotingBooth'));
 const AspirantDashboard = lazy(() => import('./pages/AspirantDashboard'));
@@ -32,68 +35,107 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return children;
+  return <PageTransition>{children}</PageTransition>;
+};
+
+// Department Required Route - Redirects to department selection if not selected
+const DepartmentRequiredRoute = ({ children }) => {
+  const { user, loading, selectedDepartment } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  // If user is authenticated, go to dashboard
+  if (user && location.pathname === '/login') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // If no department selected and NOT at root, redirect to department selection
+  if (!selectedDepartment && location.pathname !== '/') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <PageTransition>{children}</PageTransition>;
 };
 
 // Main App Content
 const AppContent = () => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {user && <Navbar />}
-      <main className={user ? 'pt-16' : ''}>
+      <main className={`flex-grow ${user ? 'pt-16' : ''}`}>
         <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/verify" element={<VerifyVote />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/vote"
-              element={
-                <ProtectedRoute allowedRoles={['student']}>
-                  <VotingBooth />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/aspirant"
-              element={
-                <ProtectedRoute allowedRoles={['aspirant', 'admin']}>
-                  <AspirantDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminPanel />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/results"
-              element={
-                <ProtectedRoute>
-                  <Results />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
-            <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
-          </Routes>
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route 
+                path="/" 
+                element={
+                  <DepartmentRequiredRoute>
+                    <DepartmentSelection />
+                  </DepartmentRequiredRoute>
+                } 
+              />
+              <Route 
+                path="/login" 
+                element={
+                  <DepartmentRequiredRoute>
+                    <Login />
+                  </DepartmentRequiredRoute>
+                } 
+              />
+              <Route path="/verify" element={<PageTransition><VerifyVote /></PageTransition>} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/vote"
+                element={
+                  <ProtectedRoute allowedRoles={['student']}>
+                    <VotingBooth />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/aspirant"
+                element={
+                  <ProtectedRoute allowedRoles={['aspirant', 'admin']}>
+                    <AspirantDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/results"
+                element={
+                  <ProtectedRoute>
+                    <Results />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
+            </Routes>
+          </AnimatePresence>
         </Suspense>
       </main>
       {user && <Footer />}

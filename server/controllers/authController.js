@@ -14,8 +14,8 @@ const cache = require('../utils/cache');
  * @access  Public
  */
 const login = asyncHandler(async (req, res) => {
-  const { email, regNumber } = req.body;
-  console.log(`[AUTH] Login attempt received for: ${email}`);
+  const { email, regNumber, department } = req.body;
+  console.log(`[AUTH] Login attempt received for: ${email}, department: ${department}`);
 
   // Normalize email to lowercase
   const normalizedEmail = email?.toLowerCase().trim();
@@ -112,10 +112,12 @@ const login = asyncHandler(async (req, res) => {
     }
 
     try {
+      // Use department from frontend if provided, otherwise derive from reg number
+      const userDepartment = department || parsedRegNumber.department;
       user = await User.create({
         email: normalizedEmail,
         regNumber: effectiveRegValidation.normalized,
-        department: parsedRegNumber.department,
+        department: userDepartment,
         admissionYear: parsedRegNumber.admissionYear,
         yearOfStudy: parsedRegNumber.yearOfStudy,
         role: parsedRegNumber.isAdmin ? 'admin' : 'student'
@@ -268,7 +270,8 @@ const verifyOtp = asyncHandler(async (req, res) => {
     });
   }
 
-  if (user.isLocked()) {
+  // DEV_MODE: Bypass lock check
+  if (user.isLocked() && process.env.DEV_MODE !== 'true') {
     return res.status(429).json({
       success: false,
       message: 'Account is temporarily locked'
@@ -276,13 +279,21 @@ const verifyOtp = asyncHandler(async (req, res) => {
   }
 
   // Check OTP
-  if (!user.otp || user.otp !== otp || user.otpExpires < Date.now()) {
+  const isDevMode = process.env.DEV_MODE === 'true';
+  const isOtpValid = user.otp === otp && user.otpExpires > Date.now();
+  
+  // DEV_MODE: Allow "123456" or any OTP if it matches what was sent in devOtp
+  const isBypassValid = isDevMode && (otp === '123456' || otp === user.otp);
+
+  if (!isOtpValid && !isBypassValid) {
     await logAuth(req, 'LOGIN_FAILED', {
       reason: 'invalid_or_expired_otp',
       userId
     }, 'high');
 
-    await user.incrementLoginAttempts();
+    if (!isDevMode) {
+      await user.incrementLoginAttempts();
+    }
 
     return res.status(400).json({
       success: false,

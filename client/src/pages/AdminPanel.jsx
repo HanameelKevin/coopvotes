@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../utils/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, FACULTIES, getAllDepartments } from '../context/AuthContext';
 import Toast from '../components/Toast';
 import AdminCharts from '../components/AdminCharts';
 import { formatDate, getDepartmentName } from '../utils/helpers';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminPanel = () => {
   const { user } = useAuth();
@@ -15,13 +16,12 @@ const AdminPanel = () => {
   const [newCandidate, setNewCandidate] = useState({
     email: '',
     position: 'Congress Person',
-    department: 'BIT',
+    department: '',
     manifesto: ''
   });
-  const [offlineVoteData, setOfflineVoteData] = useState({
-    candidateId: '',
-    votes: ''
-  });
+
+  const allDepts = getAllDepartments();
+  // ... rest of state and queries
 
   // Fetch data
   const { data: electionData } = useQuery({
@@ -584,13 +584,14 @@ const AdminPanel = () => {
                   onChange={(e) => setNewCandidate({ ...newCandidate, department: e.target.value })}
                   className="input"
                   disabled={newCandidate.position === 'President'}
+                  required={newCandidate.position !== 'President'}
                 >
-                  <option value="BIT">BIT</option>
-                  <option value="BBM">BBM</option>
-                  <option value="CS">CS</option>
-                  <option value="COMM">COMM</option>
-                  <option value="LAW">LAW</option>
-                  <option value="EDU">EDU</option>
+                  <option value="">-- Select Department --</option>
+                  {allDepts.map(dept => (
+                    <option key={dept.code} value={dept.code}>
+                      {dept.name} ({dept.code})
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>

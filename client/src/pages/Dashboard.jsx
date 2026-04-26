@@ -1,65 +1,72 @@
-import { useAuth } from '../context/AuthContext';
-import { getDepartmentName } from '../utils/helpers';
+import { useAuth, getDepartmentByCode } from '../context/AuthContext';
 import ElectionStatus from '../components/ElectionStatus';
 import CountdownTimer from '../components/CountdownTimer';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const { user, isElectionActive } = useAuth();
+  const deptInfo = getDepartmentByCode(user?.department);
 
   const roleCards = {
     student: [
       {
         title: 'Cast Your Vote',
-        description: 'Vote for your preferred candidates in all positions',
+        description: 'Securely vote for your preferred candidates in all positions',
         icon: '🗳️',
         link: '/vote',
-        action: 'Vote Now',
-        disabled: !isElectionActive
+        action: 'Enter Booth',
+        disabled: !isElectionActive,
+        color: 'from-coop-green to-emerald-700'
       },
       {
-        title: 'View Results',
-        description: 'See live election results and vote counts',
+        title: 'Election Results',
+        description: 'Monitor live election counts and transparency data',
         icon: '📊',
         link: '/results',
-        action: 'View Results',
-        disabled: false
+        action: 'View Stats',
+        disabled: false,
+        color: 'from-blue-600 to-indigo-700'
       }
     ],
     aspirant: [
       {
         title: 'My Campaign',
-        description: 'View your vote tally and campaign performance',
+        description: 'Monitor your real-time performance and vote tally',
         icon: '📈',
         link: '/aspirant',
-        action: 'View Stats',
-        disabled: false
+        action: 'View Metrics',
+        disabled: false,
+        color: 'from-orange-500 to-red-600'
       },
       {
-        title: 'Election Results',
-        description: 'See overall election results',
+        title: 'Global Results',
+        description: 'View overall election performance and turnout',
         icon: '🏆',
         link: '/results',
-        action: 'View Results',
-        disabled: false
+        action: 'View All',
+        disabled: false,
+        color: 'from-coop-gold to-yellow-600'
       }
     ],
     admin: [
       {
-        title: 'Admin Panel',
-        description: 'Manage candidates, elections, and offline votes',
+        title: 'Command Center',
+        description: 'Manage candidates, elections, and system security',
         icon: '⚙️',
         link: '/admin',
-        action: 'Manage',
-        disabled: false
+        action: 'Manage System',
+        disabled: false,
+        color: 'from-gray-800 to-slate-900'
       },
       {
-        title: 'Election Results',
-        description: 'View and export election results',
+        title: 'Master Results',
+        description: 'Comprehensive data analysis and export tools',
         icon: '📋',
         link: '/results',
-        action: 'View Results',
-        disabled: false
+        action: 'View Analytics',
+        disabled: false,
+        color: 'from-purple-600 to-fuchsia-700'
       }
     ]
   };
@@ -78,168 +85,245 @@ const Dashboard = () => {
 
   const progress = getVoteProgress();
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      
       {/* Welcome Section */}
-      <div className="mb-8 animate-slide-up">
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-          Welcome, {user?.email?.split('@')[0]}!
+      <motion.div 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="mb-10"
+      >
+        <div className="flex items-center space-x-4 mb-2">
+          <div className="h-1.5 w-12 bg-coop-green rounded-full"></div>
+          <span className="text-xs font-black text-coop-green uppercase tracking-[0.3em]">Student Dashboard</span>
+        </div>
+        <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-4">
+          Hello, {user?.email?.split('@')[0]}!
         </h1>
-        <div className="flex flex-wrap items-center gap-4 mt-2">
-          <p className="text-gray-500 font-medium font-outfit">
-            {user?.regNumber} • {getDepartmentName(user?.department)} • Year {user?.yearOfStudy}
-          </p>
-          <div className="animate-pulse">
-            <ElectionStatus compact />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center">
+            <span className="text-sm font-black text-gray-700">{user?.regNumber}</span>
+          </div>
+          <div className="px-4 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm flex items-center">
+            <span className="text-sm font-bold text-gray-600">{deptInfo?.name || 'N/A'}</span>
+          </div>
+          <div className="px-4 py-2 bg-coop-green text-white rounded-2xl shadow-lg shadow-green-900/10 flex items-center">
+            <span className="text-xs font-black uppercase tracking-widest">Year {user?.yearOfStudy}</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Election Status & Countdown Banner */}
-      <div className="mb-8 grid md:grid-cols-2 gap-4">
-        <ElectionStatus />
-        <CountdownTimer />
-      </div>
-
-      {/* Student Voting Progress */}
-      {user?.role === 'student' && progress && (
-        <div className="glass-panel p-6 mb-8 border-l-8 border-coop-green animate-slide-up stagger-1 shadow-2xl">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-black text-gray-900 uppercase tracking-widest">Voting Progress</h2>
-            <span className={`font-black text-2xl ${progress.percentage === 100 ? 'text-coop-green' : 'text-blue-600'}`}>
-              {progress.percentage}%
-            </span>
-          </div>
-
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
-            <div
-              className={`h-3 rounded-full transition-all duration-1000 ${progress.percentage === 100 ? 'bg-coop-green' : 'bg-blue-500'}`}
-              style={{ width: `${progress.percentage}%` }}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {progress.required.map(pos => {
-              const isDone = progress.voted.includes(pos);
-              return (
-                <div key={pos} className={`p-3 rounded-xl border ${isDone ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-700">{pos}</span>
-                    {isDone ? (
-                      <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    ) : (
-                      <span className="text-xs font-medium text-gray-400 bg-gray-200 px-2 py-1 rounded-full">Pending</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {progress.percentage === 100 && (
-            <div className="mt-6 p-4 bg-green-100 text-green-800 rounded-xl font-semibold flex items-center justify-center animate-slide-up">
-              🎉 You have completed voting! Thank you for participating.
-            </div>
-          )}
+      {/* Election Status Banner */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mb-10 grid lg:grid-cols-3 gap-6"
+      >
+        <div className="lg:col-span-2">
+          <ElectionStatus />
         </div>
-      )}
+        <div>
+          <CountdownTimer />
+        </div>
+      </motion.div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-        {[
-          { label: 'Department', value: user?.department, color: 'border-t-coop-gold hover:border-t-coop-green', stagger: 'stagger-1' },
-          { label: 'Year of Study', value: user?.yearOfStudy, color: 'border-t-blue-400 hover:border-t-blue-600', stagger: 'stagger-2' },
-          { label: 'Role', value: user?.role, color: 'border-t-emerald-400 hover:border-t-emerald-600', stagger: 'stagger-3' },
-          { label: 'Election', value: isElectionActive ? 'Active' : 'Closed', color: 'border-t-purple-400 hover:border-t-purple-600', stagger: 'stagger-4' }
-        ].map((stat, i) => (
-          <div key={i} className={`glass-card p-5 border-t-4 ${stat.color} animate-entrance ${stat.stagger}`}>
-            <p className="text-xs text-gray-400 font-bold uppercase tracking-tighter">{stat.label}</p>
-            <p className={`text-xl font-black mt-1 ${stat.label === 'Election' && isElectionActive ? 'text-green-600' : 'text-gray-900'} capitalize`}>
-              {stat.value}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Action Cards */}
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-      <div className="grid md:grid-cols-2 gap-6">
-        {cards.map((card, index) => (
-          <Link
-            key={index}
-            to={card.disabled ? '#' : card.link}
-            className={`
-              glass-card block group
-              ${card.disabled ? 'opacity-50 cursor-not-allowed' : ''}
-              transition-all duration-300
-            `}
+      {/* Main Content Grid */}
+      <div className="grid lg:grid-cols-3 gap-10">
+        
+        {/* Left Column: Actions */}
+        <div className="lg:col-span-2 space-y-8">
+          <h2 className="text-xl font-black text-gray-900 uppercase tracking-widest flex items-center">
+            <span className="mr-3">⚡</span> Quick Actions
+          </h2>
+          
+          <motion.div 
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="grid sm:grid-cols-2 gap-6"
           >
-            <div className="flex items-start space-x-4">
-              <div className="text-4xl">{card.icon}</div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-coop-green transition-colors">
-                  {card.title}
-                </h3>
-                <p className="text-gray-600 text-sm mt-1">{card.description}</p>
-                <div className="mt-4">
-                  <span className={`
-                    inline-block px-4 py-2 rounded-lg text-sm font-medium
-                    ${card.disabled
-                      ? 'bg-gray-100 text-gray-400'
-                      : 'bg-coop-green text-white group-hover:bg-green-700'}
-                    transition-colors
-                  `}>
-                    {card.action}
-                    {!card.disabled && (
-                      <svg className="inline-block w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    )}
-                  </span>
+            {cards.map((card, index) => (
+              <motion.div key={index} variants={item}>
+                <Link
+                  to={card.disabled ? '#' : card.link}
+                  className={`
+                    group relative block overflow-hidden rounded-[2.5rem] bg-white border border-gray-100 shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2
+                    ${card.disabled ? 'opacity-60 cursor-not-allowed' : ''}
+                  `}
+                >
+                  <div className={`absolute top-0 left-0 w-full h-2 bg-gradient-to-r ${card.color}`}></div>
+                  
+                  <div className="p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="text-5xl bg-gray-50 w-20 h-20 rounded-3xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
+                        {card.icon}
+                      </div>
+                      {!card.disabled && (
+                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:text-coop-green group-hover:bg-green-50 transition-colors">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-2 group-hover:text-coop-green transition-colors">
+                      {card.title}
+                    </h3>
+                    <p className="text-gray-500 font-medium text-sm leading-relaxed mb-8">
+                      {card.description}
+                    </p>
+                    
+                    <div className={`
+                      inline-flex items-center px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all
+                      ${card.disabled 
+                        ? 'bg-gray-100 text-gray-400' 
+                        : `bg-gradient-to-br ${card.color} text-white shadow-lg group-hover:px-8`}
+                    `}>
+                      {card.action}
+                    </div>
+                  </div>
+                  
+                  {card.disabled && !isElectionActive && (
+                    <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
+                      <div className="bg-white border border-red-100 px-4 py-2 rounded-full shadow-xl">
+                        <span className="text-red-600 text-[10px] font-black uppercase tracking-widest">Election Inactive</span>
+                      </div>
+                    </div>
+                  )}
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Guidelines */}
+          <div className="bg-gradient-to-br from-gray-900 to-slate-800 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-10 opacity-10">
+               <span className="text-9xl font-black">?</span>
+            </div>
+            <h3 className="text-2xl font-black mb-6 flex items-center">
+              <span className="w-8 h-8 bg-coop-gold text-black rounded-lg flex items-center justify-center text-sm mr-4">ℹ️</span>
+              Voting Guidelines
+            </h3>
+            <ul className="space-y-4 relative z-10">
+              {[
+                'Your vote is encrypted and completely confidential.',
+                'You can only vote once per each position.',
+                'Ensure you have a stable internet connection while voting.',
+                'Departmental positions are restricted to your registered faculty.'
+              ].map((text, i) => (
+                <li key={i} className="flex items-start space-x-4 group">
+                  <span className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black group-hover:bg-coop-green transition-colors">{i+1}</span>
+                  <span className="text-gray-400 group-hover:text-white transition-colors font-medium">{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Right Column: Progress & Stats */}
+        <div className="space-y-8">
+          <h2 className="text-xl font-black text-gray-900 uppercase tracking-widest flex items-center">
+            <span className="mr-3">📊</span> Your Activity
+          </h2>
+
+          {/* Voting Progress Card */}
+          {user?.role === 'student' && progress && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="glass-panel p-8 border-t-8 border-coop-green shadow-xl"
+            >
+              <div className="flex justify-between items-end mb-6">
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Completion</p>
+                  <h3 className="text-3xl font-black text-gray-900 tabular-nums">{progress.percentage}%</h3>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${progress.percentage === 100 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700 animate-pulse'}`}>
+                  {progress.percentage === 100 ? 'Finished' : 'In Progress'}
                 </div>
               </div>
-            </div>
-            {card.disabled && !isElectionActive && (
-              <p className="text-xs text-red-500 mt-2">
-                Election is not currently active
-              </p>
-            )}
-          </Link>
-        ))}
-      </div>
 
-      {/* Info Section */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h3 className="font-semibold text-blue-900 mb-2">
-          {user?.role === 'student' && 'Voting Information'}
-          {user?.role === 'aspirant' && 'Candidate Information'}
-          {user?.role === 'admin' && 'Administrator Information'}
-        </h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          {user?.role === 'student' && (
-            <>
-              <li>• You can vote once per position</li>
-              <li>• Department positions can only be voted by students in that department</li>
-              <li>• President is elected by all students university-wide</li>
-              <li>• Your vote is confidential and cannot be changed once submitted</li>
-            </>
+              <div className="w-full bg-gray-100 rounded-full h-2.5 mb-8 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress.percentage}%` }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                  className={`h-full rounded-full ${progress.percentage === 100 ? 'bg-green-500' : 'bg-coop-green shadow-[0_0_15px_rgba(0,107,63,0.4)]'}`}
+                />
+              </div>
+
+              <div className="space-y-3">
+                {progress.required.map(pos => {
+                  const isDone = progress.voted.includes(pos);
+                  return (
+                    <div key={pos} className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${isDone ? 'bg-green-50/50 border-green-100' : 'bg-gray-50/50 border-gray-100 opacity-60'}`}>
+                      <span className={`text-xs font-black uppercase tracking-wider ${isDone ? 'text-green-700' : 'text-gray-500'}`}>{pos}</span>
+                      {isDone ? (
+                        <div className="w-6 h-6 bg-green-500 text-white rounded-lg flex items-center justify-center shadow-lg shadow-green-900/20">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 bg-gray-200 rounded-lg"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {progress.percentage === 100 && (
+                <motion.div 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="mt-8 p-4 bg-green-600 text-white rounded-2xl text-center shadow-xl shadow-green-900/20"
+                >
+                  <p className="text-xs font-black uppercase tracking-widest">✅ All Votes Cast</p>
+                </motion.div>
+              )}
+            </motion.div>
           )}
-          {user?.role === 'aspirant' && (
-            <>
-              <li>• Monitor your vote count in real-time</li>
-              <li>• Results include both online and offline votes</li>
-              <li>• Contact admin if you notice any discrepancies</li>
-            </>
-          )}
-          {user?.role === 'admin' && (
-            <>
-              <li>• Manage candidates and approve new aspirants</li>
-              <li>• Record offline votes manually</li>
-              <li>• Start and end elections</li>
-              <li>• Export results for official records</li>
-            </>
-          )}
-        </ul>
+
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-1 gap-4">
+            {[
+              { label: 'System Status', value: 'Encrypted', icon: '🛡️', color: 'text-green-600' },
+              { label: 'Server Region', value: 'Nairobi-East', icon: '📍', color: 'text-blue-600' },
+              { label: 'Security Level', value: 'AES-256', icon: '🔒', color: 'text-coop-gold' }
+            ].map((stat, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + (i * 0.1) }}
+                className="bg-white border border-gray-100 p-6 rounded-[2rem] flex items-center space-x-4 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="text-2xl bg-gray-50 w-12 h-12 rounded-xl flex items-center justify-center shadow-inner">{stat.icon}</div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                  <p className={`font-black tracking-tight ${stat.color}`}>{stat.value}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
