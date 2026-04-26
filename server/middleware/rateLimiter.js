@@ -64,6 +64,19 @@ const voteLimiter = rateLimit({
   },
 });
 
+// Vote verification rate limiter
+const verifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // 50 attempts per 15 mins
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator,
+  message: {
+    success: false,
+    message: 'Too many verification attempts. Please try again later.'
+  },
+});
+
 // Basic Bot Detection Middleware
 const botDetector = (req, res, next) => {
   const userAgent = req.headers['user-agent'] || '';
@@ -96,6 +109,7 @@ module.exports = {
   generalLimiter,
   authLimiter,
   voteLimiter,
+  verifyLimiter,
   botDetector,
   getClientIp
 };
