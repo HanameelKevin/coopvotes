@@ -19,9 +19,12 @@ const AdminPanel = () => {
     department: '',
     manifesto: ''
   });
+  const [offlineVoteData, setOfflineVoteData] = useState({
+    candidateId: '',
+    votes: ''
+  });
 
   const allDepts = getAllDepartments();
-  // ... rest of state and queries
 
   // Fetch data
   const { data: electionData } = useQuery({
